@@ -9,17 +9,27 @@ import sys
 import os
 from itertools import chain
 
-from untraceables import untraceables
+import untraceables
 from untraceables.utilities import mysql
+from untraceables.utilities import query
 from untraceables.utilities import configuration
+from untraceables.utilities import filter
+from untraceables.utilities import formatter
 
 
-def initialize(args):
-  """
-  Wrapper for `initialize` subcommand.
-  """
+CONFIGURATION_FILE = 'untraceables.cfg'
+"""
+The name of untraceables' configuration file.
+"""
 
-  pass
+
+def _config_unpack(config):
+  return config['main']['host'], config['main']['user'], config['main']['password']
+
+
+def _print_e(e):
+    print(e, file=sys.stderr)
+    sys.exit(1)
 
 
 def get_table_list(args):
@@ -27,31 +37,30 @@ def get_table_list(args):
   Wrapper for `get-table-list` subcommand.
   """
 
-  config = configuration.read_file('untraceables.cfg')
+  config = configuration.read_file(CONFIGURATION_FILE)
   if config is False:
-    print('Could not find or read configuration file', file=sys.stderr)
-    sys.exit(1)
+    _print_e('Could not find or read configuration file')
 
-  host = config['main']['host']
-  user = config['main']['user']
-  password = config['main']['password']
+  host, user, password = _config_unpack(config)
 
   database = args.database
   inclusive_regexes = args.include_regex
   exclusive_regexes = args.exclude_regex
 
+  connection = cursor = None
   try:
     connection = mysql.get_connection(host, user, password, database)
     cursor = mysql.get_cursor(connection)
 
-    table_columns = mysql.get_show_tables(cursor, database)
-    filtered_table_columns = untraceables.filter_table_list(table_columns, inclusive_regexes, exclusive_regexes)
-    formatted_table_columns = untraceables.format_table_list(database, sorted(filtered_table_columns))
+    show_tables = mysql.get_show_tables(cursor, database)
+    formatted_show_tables = formatter.show_tables(show_tables)
 
-    print(*formatted_table_columns, sep=os.linesep)
+    filtered_columns = filter.show_tables(formatted_show_tables, inclusive_regexes, exclusive_regexes)
+    formatted_columns = formatter.table_columns_tsv(database, sorted(filtered_columns))
+
+    print(*formatted_columns, sep=os.linesep)
   except Exception, e:
-    print(e, file=sys.stderr)
-    sys.exit(1)
+    _print_e(e)
   finally:
     mysql.close_connection_and_cursor(connection, cursor)
 
@@ -61,39 +70,31 @@ def get_sql(args):
   Wrapper for `get-sql` subcommand.
   """
 
-  config = configuration.read_file('untraceables.cfg')
+  config = configuration.read_file(CONFIGURATION_FILE)
   if config is False:
-    print('Could not find or read configuration file', file=sys.stderr)
-    sys.exit(1)
+    _print_e('Could not find or read configuration file')
 
-  host = config['main']['host']
-  user = config['main']['user']
-  password = config['main']['password']
+  host, user, password = _config_unpack(config)
 
   database = args.database
   table = args.table
   column = args.column
-  mapping_database = args.mapping_database or untraceables.__package__
+  mapping_database = args.mapping_database or untraceables.__name__
   mapping_table = args.mapping_table or table
 
+  connection = cursor = None
   try:
     connection = mysql.get_connection(host, user, password, database)
     cursor = mysql.get_cursor(connection)
 
     columns = mysql.get_show_columns(cursor, table)
 
-    randomize_ids_queries = untraceables.get_randomize_queries(database,
-                                                               table,
-                                                               columns,
-                                                               column,
-                                                               mapping_database,
-                                                               mapping_table)
-    formatted_randomize_ids_queries = untraceables.format_randomize_queries(randomize_ids_queries)
+    randomize_ids_queries = query.get_randomize(database, table, columns, column, mapping_database, mapping_table)
+    formatted_randomize_ids_queries = formatter.randomize_queries(randomize_ids_queries)
 
     print(formatted_randomize_ids_queries)
   except Exception, e:
-    print(e, file=sys.stderr)
-    sys.exit(1)
+    _print_e(e)
   finally:
     mysql.close_connection_and_cursor(connection, cursor)
 
@@ -103,41 +104,40 @@ def run_sql(args):
   Wrapper for `run-sql` subcommand.
   """
 
-  config = configuration.read_file('untraceables.cfg')
+  config = configuration.read_file(CONFIGURATION_FILE)
   if config is False:
-    print('Could not find or read configuration file', file=sys.stderr)
-    sys.exit(1)
+    _print_e('Could not find or read configuration file')
 
-  host = config['main']['host']
-  user = config['main']['user']
-  password = config['main']['password']
+  host, user, password = _config_unpack(config)
 
   database = args.database
   foreign_key_checks = args.foreign_key_checks
 
   if sys.stdin.isatty():
-    print('Could not read any data from stdin', file=sys.stderr)
-    sys.exit(1)
+    _print_e('Could not read any data from stdin')
 
-  foreign_key_checks_query = iter([])
+  foreign_key_checks_off = []
+  foreign_key_checks_on = []
   if not foreign_key_checks:
-    foreign_key_checks_query = mysql.get_foreign_key_checks_query(foreign_key_checks)
+    foreign_key_checks_off = [query.get_foreign_key_checks(foreign_key_checks)]
+    foreign_key_checks_on = [query.get_foreign_key_checks(not foreign_key_checks)]
 
-  queries_from_stdin = mysql.split_file(sys.stdin, ';')
+  statements_from_stdin = mysql.split_file(sys.stdin)
 
+  connection = cursor = None
   try:
     connection = mysql.get_connection(host, user, password, database)
     connection.autocommit(True)
     cursor = mysql.get_cursor(connection)
 
-    for query in chain(foreign_key_checks_query, queries_from_stdin):
-      stripped_query = query.strip()
-      if stripped_query != '':
-        cursor.execute(stripped_query)
+    statements = chain(iter(foreign_key_checks_off), statements_from_stdin, iter(foreign_key_checks_on))
+    for statement in statements:
+      stripped_statement = statement.strip()
+      if stripped_statement != '':
+        cursor.execute(stripped_statement)
 
   except Exception, e:
-    print(e, file=sys.stderr)
-    sys.exit(1)
+    _print_e(e)
   finally:
     mysql.close_connection_and_cursor(connection, cursor)
 
@@ -149,10 +149,6 @@ def main():
 
   parser = argparse.ArgumentParser()
   subparsers = parser.add_subparsers(help='Commands')
-
-  # The "init" command
-  init_parser = subparsers.add_parser('initialize', help='Displays instructions to create and load a mapping table')
-  init_parser.set_defaults(func=initialize)
 
   # The "get-table-list" command
   get_table_list_parser = subparsers.add_parser('get-table-list', help='Generates a list of tables to be randomized')

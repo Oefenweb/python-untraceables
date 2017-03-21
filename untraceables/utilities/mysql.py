@@ -5,6 +5,8 @@ from warnings import filterwarnings
 import MySQLdb
 import MySQLdb.cursors
 
+from untraceables.utilities import query
+
 filterwarnings('ignore', category=MySQLdb.Warning)
 
 
@@ -29,13 +31,15 @@ def close_connection_and_cursor(connection, cursor):
   Closes a given connection and cursor.
   """
 
-  cursor.close()
-  connection.close()
+  attr = 'close'
+  for o in (cursor, connection):
+    if hasattr(o, attr):
+      getattr(o, attr)
 
   return True
 
 
-def split_file(file_pointer, delimiter):
+def split_file(file_pointer, delimiter=';'):
   buf = ''
   while True:
     while delimiter in buf:
@@ -50,24 +54,12 @@ def split_file(file_pointer, delimiter):
 
 
 def get_show_columns(cursor, table):
-  query = 'SHOW columns FROM `{:s}`'.format(table)
-  cursor.execute(query)
+  cursor.execute(query.get_show_table_columns(table))
 
   return cursor.fetchall()
 
 
 def get_show_tables(cursor, database):
-  query = ("SELECT"
-           " CONCAT(`TABLE_NAME`, '.', `COLUMN_NAME`) AS `tc`"
-           "FROM"
-           " `information_schema`.`COLUMNS` "
-           "WHERE"
-           " `TABLE_SCHEMA` = '{:s}'").format(database)
-  cursor.execute(query)
+  cursor.execute(query.get_show_columns(database))
 
-  for row in cursor.fetchall():
-    yield row['tc']
-
-
-def get_foreign_key_checks_query(value):
-  yield 'SET FOREIGN_KEY_CHECKS={0:d}'.format(value)
+  return cursor.fetchall()
