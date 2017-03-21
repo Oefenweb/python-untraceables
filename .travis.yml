@@ -1,0 +1,18 @@
+language: python
+
+python:
+  - "2.7"
+
+install: "make init"
+
+before_script:
+  - "export PYTHONPATH=${PYTHONPATH}:$(pwd)"
+
+script:
+  - "make check"
+  - "make test"
+  - "make source"
+  - "pip install --upgrade dist/untraceables-*.tar.gz"
+
+notifications:
+  email: false

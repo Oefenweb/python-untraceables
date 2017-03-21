@@ -1,0 +1,216 @@
+#!/usr/bin/env python
+
+# -*- coding: utf-8 -*-
+
+from __future__ import print_function
+
+import argparse
+import sys
+import os
+from itertools import chain
+
+from untraceables import untraceables
+from untraceables.utilities import mysql
+from untraceables.utilities import configuration
+
+
+def initialize(args):
+  """
+  Wrapper for `initialize` subcommand.
+  """
+
+  pass
+
+
+def get_table_list(args):
+  """
+  Wrapper for `get-table-list` subcommand.
+  """
+
+  config = configuration.read_file('untraceables.cfg')
+  if config is False:
+    print('Could not find or read configuration file', file=sys.stderr)
+    sys.exit(1)
+
+  host = config['main']['host']
+  user = config['main']['user']
+  password = config['main']['password']
+
+  database = args.database
+  inclusive_regexes = args.include_regex
+  exclusive_regexes = args.exclude_regex
+
+  try:
+    connection = mysql.get_connection(host, user, password, database)
+    cursor = mysql.get_cursor(connection)
+
+    table_columns = mysql.get_show_tables(cursor, database)
+    filtered_table_columns = untraceables.filter_table_list(table_columns, inclusive_regexes, exclusive_regexes)
+    formatted_table_columns = untraceables.format_table_list(database, sorted(filtered_table_columns))
+
+    print(*formatted_table_columns, sep=os.linesep)
+  except Exception, e:
+    print(e, file=sys.stderr)
+    sys.exit(1)
+  finally:
+    mysql.close_connection_and_cursor(connection, cursor)
+
+
+def get_sql(args):
+  """
+  Wrapper for `get-sql` subcommand.
+  """
+
+  config = configuration.read_file('untraceables.cfg')
+  if config is False:
+    print('Could not find or read configuration file', file=sys.stderr)
+    sys.exit(1)
+
+  host = config['main']['host']
+  user = config['main']['user']
+  password = config['main']['password']
+
+  database = args.database
+  table = args.table
+  column = args.column
+  mapping_database = args.mapping_database or untraceables.__package__
+  mapping_table = args.mapping_table or table
+
+  try:
+    connection = mysql.get_connection(host, user, password, database)
+    cursor = mysql.get_cursor(connection)
+
+    columns = mysql.get_show_columns(cursor, table)
+
+    randomize_ids_queries = untraceables.get_randomize_queries(database,
+                                                               table,
+                                                               columns,
+                                                               column,
+                                                               mapping_database,
+                                                               mapping_table)
+    formatted_randomize_ids_queries = untraceables.format_randomize_queries(randomize_ids_queries)
+
+    print(formatted_randomize_ids_queries)
+  except Exception, e:
+    print(e, file=sys.stderr)
+    sys.exit(1)
+  finally:
+    mysql.close_connection_and_cursor(connection, cursor)
+
+
+def run_sql(args):
+  """
+  Wrapper for `run-sql` subcommand.
+  """
+
+  config = configuration.read_file('untraceables.cfg')
+  if config is False:
+    print('Could not find or read configuration file', file=sys.stderr)
+    sys.exit(1)
+
+  host = config['main']['host']
+  user = config['main']['user']
+  password = config['main']['password']
+
+  database = args.database
+  foreign_key_checks = args.foreign_key_checks
+
+  if sys.stdin.isatty():
+    print('Could not read any data from stdin', file=sys.stderr)
+    sys.exit(1)
+
+  foreign_key_checks_query = iter([])
+  if not foreign_key_checks:
+    foreign_key_checks_query = mysql.get_foreign_key_checks_query(foreign_key_checks)
+
+  queries_from_stdin = mysql.split_file(sys.stdin, ';')
+
+  try:
+    connection = mysql.get_connection(host, user, password, database)
+    connection.autocommit(True)
+    cursor = mysql.get_cursor(connection)
+
+    for query in chain(foreign_key_checks_query, queries_from_stdin):
+      stripped_query = query.strip()
+      if stripped_query != '':
+        cursor.execute(stripped_query)
+
+  except Exception, e:
+    print(e, file=sys.stderr)
+    sys.exit(1)
+  finally:
+    mysql.close_connection_and_cursor(connection, cursor)
+
+
+def main():
+  """
+  Main.
+  """
+
+  parser = argparse.ArgumentParser()
+  subparsers = parser.add_subparsers(help='Commands')
+
+  # The "init" command
+  init_parser = subparsers.add_parser('initialize', help='Displays instructions to create and load a mapping table')
+  init_parser.set_defaults(func=initialize)
+
+  # The "get-table-list" command
+  get_table_list_parser = subparsers.add_parser('get-table-list', help='Generates a list of tables to be randomized')
+  get_table_list_parser.set_defaults(func=get_table_list)
+  get_table_list_parser.add_argument('-d', '--database',
+                                     type=str,
+                                     required=True,
+                                     help='A database name (e.g. `oefenweb_nl_app`)')
+  get_table_list_parser.add_argument('-i', '--include-regex',
+                                     type=str,
+                                     default=[],
+                                     action='append',
+                                     help='A regex for `table.column` inclusion (e.g. `\'^users\.id$\'`)')
+  get_table_list_parser.add_argument('-e', '--exclude-regex',
+                                     type=str,
+                                     default=[],
+                                     action='append',
+                                     help=('A regex for `table.column` exclusion '
+                                           '(e.g. `\'^user_application_typesucces_properties\.'
+                                           'typesucces_user_id$\'`)'))
+
+  # The "get-sql" command
+  get_sql_parser = subparsers.add_parser('get-sql', help='Generates sql to randomize id\'s of a given table')
+  get_sql_parser.set_defaults(func=get_sql)
+  get_sql_parser.add_argument('-d', '--database',
+                              type=str,
+                              required=True,
+                              help='A database name (e.g. `oefenweb_nl_app`)')
+  get_sql_parser.add_argument('-t', '--table', type=str, required=True, help='A table name (e.g. `users`)')
+  get_sql_parser.add_argument('-c', '--column', type=str, required=True, help='A column name (e.g. `id`)')
+  get_sql_parser.add_argument('--mapping-database',
+                              type=str,
+                              help='A (mapping) database name (e.g. `untraceables`)')
+  get_sql_parser.add_argument('--mapping-table', type=str, help='A (mapping) table name (e.g. `users`)')
+
+  # The "run-sql" command
+  run_sql_parser = subparsers.add_parser('run-sql', help='Runs sql from stdin')
+  run_sql_parser.set_defaults(func=run_sql)
+  run_sql_parser.add_argument('-d', '--database',
+                              type=str,
+                              required=True,
+                              help='A database name (e.g. `oefenweb_nl_app`)')
+  run_sql_parser.add_argument('--foreign-key-checks',
+                              action='store_true',
+                              dest='foreign_key_checks',
+                              help='Whether or not to enable FOREIGN_KEY_CHECKS')
+  run_sql_parser.add_argument('--no-foreign-key-checks',
+                              action='store_false',
+                              dest='foreign_key_checks',
+                              help='Whether or not to enable FOREIGN_KEY_CHECKS')
+  run_sql_parser.set_defaults(foreign_key_checks=True)
+
+  parser.add_argument('-v', '--verbose', action='store_true', help='Be more verbose')
+
+  args = parser.parse_args()
+  args.func(args)
+
+  sys.exit(0)
+
+if __name__ == '__main__':
+  main()
