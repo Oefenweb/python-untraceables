@@ -3,6 +3,9 @@ all: check source deb
 init:
 	pip install -r requirements.txt
 
+init-dev:
+	pip install -r requirements-dev.txt
+
 dist: source deb
 
 source:

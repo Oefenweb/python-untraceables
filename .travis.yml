@@ -3,10 +3,10 @@ language: python
 python:
   - "2.7"
 
-install: make init
+install: make init-dev
 
 before_script:
-  - "export PYTHONPATH=${PYTHONPATH}:$(pwd)"
+  - export PYTHONPATH="${PYTHONPATH}:$(pwd)"
 
 script:
   - make check
