@@ -1,22 +1,73 @@
 # -*- coding: utf-8 -*-
 
+"""
+Query utility functions.
+"""
+
+
 def get_show_table_columns(table):
-  return 'SHOW columns FROM `{:s}`'.format(table)
+  """
+  Gets the query of SHOW COLUMNS for a given table.
+
+  :type str
+  :param table: A table name
+  :rtype str
+  :return A query
+  """
+
+  return 'SHOW COLUMNS FROM `{:s}`'.format(table)
 
 
 def get_show_columns(database):
- return ("SELECT `TABLE_NAME`, `COLUMN_NAME` "
-         " FROM "
-         "`information_schema`.`COLUMNS`"
-         " WHERE "
-         "`TABLE_SCHEMA` = '{:s}'").format(database)
+  """
+  Gets the query of SHOW COLUMNS for a given database.
+
+  :type str
+  :param database: A database name
+  :rtype str
+  :return A query
+  """
+
+  return ("SELECT `TABLE_NAME`, `COLUMN_NAME` "
+          " FROM "
+          "`information_schema`.`COLUMNS`"
+          " WHERE "
+          "`TABLE_SCHEMA` = '{:s}'").format(database)
 
 
 def get_foreign_key_checks(enabled):
+  """
+  Gets the query the enable / disable FOREIGN_KEY_CHECKS.
+
+  :type bool
+  :param enabled: Whether or not to enable
+  :rtype str
+  :return A query
+  """
+
   return 'SET FOREIGN_KEY_CHECKS={0:d}'.format(enabled)
 
 
 def get_randomize(database, table, columns, column, mapping_database, mapping_table):
+  """
+  Gets the queries to randomize a table / column in a given database.
+
+  :type str
+  :param database: A database name
+  :type str
+  :param table: A table name
+  :type str
+  :param columns: A column name
+  :type tuple
+  :param column: Zero or more columns
+  :type str
+  :param mapping_database: A mapping database name (e.g. `untraceables`)
+  :type str
+  :param mapping_table: A mapping table name (e.g. `users`)
+  :rtype list
+  :return Multiple queries
+  """
+
   queries = []
   queries.append('DROP TABLE IF EXISTS `{:s}`.`_{:s}`'.format(database, table))
   queries.append('CREATE TABLE `{0:s}`.`_{1:s}` LIKE `{0:s}`.`{1:s}`'.format(database, table))
@@ -28,6 +79,27 @@ def get_randomize(database, table, columns, column, mapping_database, mapping_ta
 
 
 def _get_randomize(database, table, columns, column, mapping_database, mapping_table):
+  """
+  Gets the query to randomize a table / column in a given database.
+
+   INSERT INTO ... SELECT FROM ... part.
+
+  :type str
+  :param database: A database name
+  :type str
+  :param table: A table name
+  :type str
+  :param columns: A column name
+  :type tuple
+  :param column: Zero or more columns
+  :type str
+  :param mapping_database: A mapping database name (e.g. `untraceables`)
+  :type str
+  :param mapping_table: A mapping table name (e.g. `users`)
+  :rtype str
+  :return A query
+  """
+
   query = []
   query.append('INSERT INTO `{:s}`.`_{:s}`'.format(database, table))
   query.append('SELECT')

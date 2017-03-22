@@ -2,6 +2,10 @@
 
 # -*- coding: utf-8 -*-
 
+"""
+Randomizes IDs for a given set of tables making them untraceable across environments
+"""
+
 from __future__ import print_function
 
 import argparse
@@ -20,21 +24,42 @@ from untraceables.utilities import formatter
 CONFIGURATION_FILE = 'untraceables.cfg'
 """
 The name of untraceables' configuration file.
+
+:type str
 """
 
 
 def _config_unpack(config):
+  """
+  Unpacks relevant options from the configuration object.
+
+  :type config: configobj.ConfigObj
+  :param config: A configuration object
+  :rtype tuple
+  :return Relevant options
+  """
+
   return config['main']['host'], config['main']['user'], config['main']['password']
 
 
 def _print_e(e):
-    print(e, file=sys.stderr)
-    sys.exit(1)
+  """
+  Prints an error to `STDERR` and exits with a return code of `1`.
+
+  :type e: mixed
+  :param e: An error
+  """
+
+  print(e, file=sys.stderr)
+  sys.exit(1)
 
 
 def get_table_list(args):
   """
   Wrapper for `get-table-list` subcommand.
+
+  :type args: argparse.Namespace
+  :param args: Arguments
   """
 
   config = configuration.read_file(CONFIGURATION_FILE)
@@ -68,6 +93,9 @@ def get_table_list(args):
 def get_sql(args):
   """
   Wrapper for `get-sql` subcommand.
+
+  :type args: argparse.Namespace
+  :param args: Arguments
   """
 
   config = configuration.read_file(CONFIGURATION_FILE)
@@ -102,6 +130,9 @@ def get_sql(args):
 def run_sql(args):
   """
   Wrapper for `run-sql` subcommand.
+
+  :type args: argparse.Namespace
+  :param args: Arguments
   """
 
   config = configuration.read_file(CONFIGURATION_FILE)
@@ -156,7 +187,7 @@ def main():
   get_table_list_parser.add_argument('-d', '--database',
                                      type=str,
                                      required=True,
-                                     help='A database name (e.g. `oefenweb_nl_app`)')
+                                     help='A database name (e.g. `example_com_www`)')
   get_table_list_parser.add_argument('-i', '--include-regex',
                                      type=str,
                                      default=[],
@@ -176,7 +207,7 @@ def main():
   get_sql_parser.add_argument('-d', '--database',
                               type=str,
                               required=True,
-                              help='A database name (e.g. `oefenweb_nl_app`)')
+                              help='A database name (e.g. `example_com_www`)')
   get_sql_parser.add_argument('-t', '--table', type=str, required=True, help='A table name (e.g. `users`)')
   get_sql_parser.add_argument('-c', '--column', type=str, required=True, help='A column name (e.g. `id`)')
   get_sql_parser.add_argument('--mapping-database',
@@ -190,7 +221,7 @@ def main():
   run_sql_parser.add_argument('-d', '--database',
                               type=str,
                               required=True,
-                              help='A database name (e.g. `oefenweb_nl_app`)')
+                              help='A database name (e.g. `example_com_www`)')
   run_sql_parser.add_argument('--foreign-key-checks',
                               action='store_true',
                               dest='foreign_key_checks',
