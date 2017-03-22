@@ -54,6 +54,21 @@ def _print_e(e):
   sys.exit(1)
 
 
+def _check_max_ids(max_id, mapping_max_id):
+  """
+  Checks that the maximum ID of the mapping table is sufficient.
+
+  :type long
+  :param max_id: The maximum id
+  :type long
+  :param mapping_max_id: The maximum id of the mapping table
+  :rtype bool
+  :return Failure
+  """
+
+  return not mapping_max_id or mapping_max_id < max_id
+
+
 def get_table_list(args):
   """
   Wrapper for `get-table-list` subcommand.
@@ -116,6 +131,12 @@ def get_sql(args):
     cursor = mysql.get_cursor(connection)
 
     columns = mysql.get_show_columns(cursor, table)
+
+    max_id = mysql.get_max_id(cursor, database, table, column)
+    mapping_max_id = mysql.get_max_id(cursor, mapping_database, mapping_table, untraceables.MAPPING_ID_FIELD)
+
+    if _check_max_ids(max_id, mapping_max_id):
+      _print_e('Could not randomize IDs because the maximum ID of the mapping table is not sufficient')
 
     randomize_ids_queries = query.get_randomize(database, table, columns, column, mapping_database, mapping_table)
     formatted_randomize_ids_queries = formatter.randomize_queries(randomize_ids_queries)

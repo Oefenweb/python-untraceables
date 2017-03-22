@@ -4,6 +4,8 @@
 Query utility functions.
 """
 
+import untraceables
+
 
 def get_show_table_columns(table):
   """
@@ -33,6 +35,28 @@ def get_show_columns(database):
           "`information_schema`.`COLUMNS`"
           " WHERE "
           "`TABLE_SCHEMA` = '{:s}'").format(database)
+
+
+def get_max_id(database, table, column, order=None):
+  """
+  Gets the query to determine the maximum id for a given table / column.
+
+  :type str
+  :param database: A database name
+  :type str
+  :param table: A table name
+  :type str
+  :param column: A column name
+  :type str
+  :param order: A column name to order on
+  :rtype long
+  :return The maximum id
+  """
+
+  if not order:
+    order = column
+
+  return 'SELECT `{:s}` FROM `{:s}`.`{:s}` ORDER BY `{:s}` DESC LIMIT 1'.format(column, database, table, order)
 
 
 def get_foreign_key_checks(enabled):
@@ -107,7 +131,7 @@ def _get_randomize(database, table, columns, column, mapping_database, mapping_t
   select = []
   for c in columns:
     if c['Field'] == column:
-      select.append('`t2`.`mapped_id`')
+      select.append('`t2`.`{:s}`'.format(untraceables.MAPPING_ID_FIELD))
     else:
       select.append('`t1`.`{:s}`'.format(c['Field']))
   query.append(', '.join(select))

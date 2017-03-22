@@ -59,9 +59,9 @@ def close_connection_and_cursor(connection, cursor):
   """
 
   attr = 'close'
-  for o in (cursor, connection):
-    if hasattr(o, attr):
-      getattr(o, attr)
+  for to_be_closed_o in (cursor, connection):
+    if hasattr(to_be_closed_o, attr):
+      getattr(to_be_closed_o, attr)
 
   return True
 
@@ -103,14 +103,12 @@ def get_show_columns(cursor, table):
   :return The results of SHOW COLUMNS
   """
 
-  cursor.execute(query.get_show_table_columns(table))
-
-  return cursor.fetchall()
+  return _fetchall(cursor, query.get_show_table_columns(table))
 
 
 def get_show_tables(cursor, database):
   """
-  Gets the results of of SHOW TABLES for a given database.
+  Gets the results of SHOW TABLES for a given database.
 
   :type MySQLdb.cursors.SSDictCursor
   :param cursor: A mysql cursor
@@ -120,6 +118,45 @@ def get_show_tables(cursor, database):
   :return The results of SHOW TABLES
   """
 
-  cursor.execute(query.get_show_columns(database))
+  return _fetchall(cursor, query.get_show_columns(database))
+
+
+def get_max_id(cursor, database, table, column, order=None):
+  """
+  Gets the maximum id for a given table / column.
+
+  :type MySQLdb.cursors.SSDictCursor
+  :param cursor: A mysql cursor
+  :type str
+  :param database: A database name
+  :type str
+  :param table: A table name
+  :type str
+  :param column: A column name
+  :type str
+  :param order: A column name to order on
+  :rtype long|bool
+  :return: The maximum id or False on failure
+  """
+
+  for row in _fetchall(cursor, query.get_max_id(database, table, column, order)):
+    return row[column]
+
+  return False
+
+
+def _fetchall(cursor, statement):
+  """
+  Fetches the results of a given SQL statement.
+
+  :type MySQLdb.cursors.SSDictCursor
+  :param cursor: A mysql cursor
+  :type str
+  :param statement: A SQL statement
+  :rtype tuple
+  :return The results of the MySQLdb statement
+  """
+
+  cursor.execute(statement)
 
   return cursor.fetchall()
