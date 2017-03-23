@@ -14,12 +14,12 @@ import os
 from itertools import chain
 
 import untraceables
-from untraceables.utilities import mysql
-from untraceables.utilities import query
 from untraceables.utilities import configuration
 from untraceables.utilities import filter
 from untraceables.utilities import formatter
-
+from untraceables.utilities import mysql
+from untraceables.utilities import query
+from untraceables.utilities import validation
 
 CONFIGURATION_FILE = 'untraceables.cfg'
 """
@@ -52,21 +52,6 @@ def _print_e(e):
 
   print(e, file=sys.stderr)
   sys.exit(1)
-
-
-def _check_max_ids(max_id, mapping_max_id):
-  """
-  Checks that the maximum ID of the mapping table is sufficient.
-
-  :type long
-  :param max_id: The maximum id
-  :type long
-  :param mapping_max_id: The maximum id of the mapping table
-  :rtype bool
-  :return Failure
-  """
-
-  return not mapping_max_id or mapping_max_id < max_id
 
 
 def get_table_list(args):
@@ -135,7 +120,7 @@ def get_sql(args):
     max_id = mysql.get_max_id(cursor, database, table, column)
     mapping_max_id = mysql.get_max_id(cursor, mapping_database, mapping_table, untraceables.MAPPING_ID_FIELD)
 
-    if _check_max_ids(max_id, mapping_max_id):
+    if validation.check_max_ids(max_id, mapping_max_id):
       _print_e('Could not randomize IDs because the maximum ID of the mapping table is not sufficient')
 
     randomize_ids_queries = query.get_randomize(database, table, columns, column, mapping_database, mapping_table)
