@@ -49,7 +49,7 @@ Generate a file containing the full unsinged integer range.
 seq -f '%.0f' 0 4294967295 > unsinged-int;
 ```
 
-Shuffle the file. **Note** that this may need a lot om RAM, `unsinged-int` is about 40G.
+Shuffle the file. **Note** that this may need a lot om RAM. `unsinged-int` is about `40G`, RAM usage for the shuffle was `107G`.
 
 ```sh
 shuf < unsinged-int > unsinged-int.shuf;
