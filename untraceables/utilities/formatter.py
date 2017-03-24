@@ -52,6 +52,9 @@ def randomize_queries(queries):
   :return Formatted queries
   """
 
-  separator = ';' + os.linesep
+  if len(queries) > 0:
+    separator = ';' + os.linesep
 
-  return separator.join(queries) + separator
+    return separator.join(queries) + separator
+
+  return ''

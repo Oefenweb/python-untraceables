@@ -40,6 +40,21 @@ CREATE TABLE `users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 ```
 
+#### Configuration
+
+Create the necessary configuration file.
+
+```sh
+# cat /etc/untraceables.cfg
+[main]
+# Database host
+host = localhost
+
+# Database user, read-only on untraceables database, write on databases that need randomized IDs
+user = untraceables
+password = mmRXHqnc3zSshYjxSv8n
+```
+
 #### Generate mapping table data
 
 Generate a file containing the full unsinged integer range.

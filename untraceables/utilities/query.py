@@ -80,10 +80,10 @@ def get_randomize(database, table, columns, column, mapping_database, mapping_ta
   :param database: A database name
   :type str
   :param table: A table name
-  :type str
-  :param columns: A column name
   :type tuple
-  :param column: Zero or more columns
+  :param columns: Zero or more column names (result of `SHOW COLUMNS`)
+  :type str
+  :param column: A column name
   :type str
   :param mapping_database: A mapping database name (e.g. `untraceables`)
   :type str
@@ -112,10 +112,10 @@ def _get_randomize(database, table, columns, column, mapping_database, mapping_t
   :param database: A database name
   :type str
   :param table: A table name
-  :type str
-  :param columns: A column name
   :type tuple
-  :param column: Zero or more columns
+  :param columns: Zero or more column names (result of `SHOW COLUMNS`)
+  :type str
+  :param column: A column name
   :type str
   :param mapping_database: A mapping database name (e.g. `untraceables`)
   :type str
