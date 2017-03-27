@@ -1,0 +1,7 @@
+[main]
+# Database host
+host = localhost
+
+# Database user, read-only on untraceables database, write on databases that need randomized IDs
+user = untraceables
+password =

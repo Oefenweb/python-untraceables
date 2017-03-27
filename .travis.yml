@@ -1,0 +1,28 @@
+language: python
+
+python:
+  - "2.7"
+
+services:
+  - mysql
+
+before_install:
+  - mysql -uroot -e 'CREATE DATABASE IF NOT EXISTS `untraceables_test`;'
+  - mysql -uroot -e "CREATE USER 'untraceables'@'localhost' IDENTIFIED BY 'mmRXHqnc3zSshYjxSv8n';"
+  - mysql -uroot -e "GRANT ALL PRIVILEGES ON untraceables_test . * TO 'untraceables'@'localhost';"
+  - mysql -uroot -D untraceables_test -e 'CREATE TABLE `users` (`id` int(10) unsigned NOT NULL, `mapped_id` int(10) unsigned NOT NULL, PRIMARY KEY (`id`), UNIQUE KEY `mapped_id` (`mapped_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8;';
+  - mysql -uroot -D untraceables_test -e 'INSERT INTO `users` (`id`, `mapped_id`) VALUES (0, 10), (1, 9), (2, 8);';
+
+install: make init-dev
+
+before_script:
+  - export PYTHONPATH="${PYTHONPATH}:$(pwd)"
+
+script:
+  - make check
+  - make test
+  - make source
+  - pip install --upgrade dist/untraceables-*.tar.gz
+
+notifications:
+  email: false

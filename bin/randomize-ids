@@ -1,0 +1,249 @@
+#!/usr/bin/env python
+
+# -*- coding: utf-8 -*-
+
+"""
+Randomizes IDs for a given set of tables making them untraceable across environments
+"""
+
+from __future__ import print_function
+
+import argparse
+import sys
+import os
+from itertools import chain
+
+import untraceables
+from untraceables.utilities import configuration
+from untraceables.utilities import filter
+from untraceables.utilities import formatter
+from untraceables.utilities import mysql
+from untraceables.utilities import query
+from untraceables.utilities import validation
+
+CONFIGURATION_FILE = 'untraceables.cfg'
+"""
+The name of untraceables' configuration file.
+
+:type str
+"""
+
+
+def _config_unpack(config):
+  """
+  Unpacks relevant options from the configuration object.
+
+  :type config: configobj.ConfigObj
+  :param config: A configuration object
+  :rtype tuple
+  :return Relevant options
+  """
+
+  return config['main']['host'], config['main']['user'], config['main']['password']
+
+
+def _print_e(e):
+  """
+  Prints an error to `STDERR` and exits with a return code of `1`.
+
+  :type e: mixed
+  :param e: An error
+  """
+
+  print(e, file=sys.stderr)
+  sys.exit(1)
+
+
+def get_table_list(args):
+  """
+  Wrapper for `get-table-list` subcommand.
+
+  :type args: argparse.Namespace
+  :param args: Arguments
+  """
+
+  config = configuration.read_file(CONFIGURATION_FILE)
+  if config is False:
+    _print_e('Could not find or read configuration file')
+
+  host, user, password = _config_unpack(config)
+
+  database = args.database
+  inclusive_regexes = args.include_regex
+  exclusive_regexes = args.exclude_regex
+
+  connection = cursor = None
+  try:
+    connection = mysql.get_connection(host, user, password, database)
+    cursor = mysql.get_cursor(connection)
+
+    show_tables = mysql.get_show_tables(cursor, database)
+    formatted_show_tables = formatter.show_tables(show_tables)
+
+    filtered_columns = filter.show_tables(formatted_show_tables, inclusive_regexes, exclusive_regexes)
+    formatted_columns = formatter.table_columns_tsv(database, sorted(filtered_columns))
+
+    print(*formatted_columns, sep=os.linesep)
+  except Exception, e:
+    _print_e(e)
+  finally:
+    mysql.close_connection_and_cursor(connection, cursor)
+
+
+def get_sql(args):
+  """
+  Wrapper for `get-sql` subcommand.
+
+  :type args: argparse.Namespace
+  :param args: Arguments
+  """
+
+  config = configuration.read_file(CONFIGURATION_FILE)
+  if config is False:
+    _print_e('Could not find or read configuration file')
+
+  host, user, password = _config_unpack(config)
+
+  database = args.database
+  table = args.table
+  column = args.column
+  mapping_database = args.mapping_database or untraceables.__name__
+  mapping_table = args.mapping_table or table
+
+  connection = cursor = None
+  try:
+    connection = mysql.get_connection(host, user, password, database)
+    cursor = mysql.get_cursor(connection)
+
+    columns = mysql.get_show_columns(cursor, table)
+
+    max_id = mysql.get_max_id(cursor, database, table, column)
+    mapping_max_id = mysql.get_max_id(cursor, mapping_database, mapping_table, untraceables.MAPPING_ID_FIELD)
+
+    if validation.check_max_ids(max_id, mapping_max_id):
+      _print_e('Could not randomize IDs because the maximum ID of the mapping table is not sufficient')
+
+    randomize_ids_queries = query.get_randomize(database, table, columns, column, mapping_database, mapping_table)
+    formatted_randomize_ids_queries = formatter.randomize_queries(randomize_ids_queries)
+
+    print(formatted_randomize_ids_queries)
+  except Exception, e:
+    _print_e(e)
+  finally:
+    mysql.close_connection_and_cursor(connection, cursor)
+
+
+def run_sql(args):
+  """
+  Wrapper for `run-sql` subcommand.
+
+  :type args: argparse.Namespace
+  :param args: Arguments
+  """
+
+  config = configuration.read_file(CONFIGURATION_FILE)
+  if config is False:
+    _print_e('Could not find or read configuration file')
+
+  host, user, password = _config_unpack(config)
+
+  database = args.database
+  foreign_key_checks = args.foreign_key_checks
+
+  if sys.stdin.isatty():
+    _print_e('Could not read any data from stdin')
+
+  foreign_key_checks_off = []
+  foreign_key_checks_on = []
+  if not foreign_key_checks:
+    foreign_key_checks_off = [query.get_foreign_key_checks(foreign_key_checks)]
+    foreign_key_checks_on = [query.get_foreign_key_checks(not foreign_key_checks)]
+
+  statements_from_stdin = mysql.split_file(sys.stdin)
+
+  connection = cursor = None
+  try:
+    connection = mysql.get_connection(host, user, password, database)
+    connection.autocommit(True)
+    cursor = mysql.get_cursor(connection)
+
+    statements = chain(iter(foreign_key_checks_off), statements_from_stdin, iter(foreign_key_checks_on))
+    for statement in statements:
+      stripped_statement = statement.strip()
+      if stripped_statement != '':
+        cursor.execute(stripped_statement)
+
+  except Exception, e:
+    _print_e(e)
+  finally:
+    mysql.close_connection_and_cursor(connection, cursor)
+
+
+def main():
+  """
+  Main.
+  """
+
+  parser = argparse.ArgumentParser()
+  subparsers = parser.add_subparsers(help='Commands')
+
+  # The "get-table-list" command
+  get_table_list_parser = subparsers.add_parser('get-table-list', help='Generates a list of tables to be randomized')
+  get_table_list_parser.set_defaults(func=get_table_list)
+  get_table_list_parser.add_argument('-d', '--database',
+                                     type=str,
+                                     required=True,
+                                     help='A database name (e.g. `example_com_www`)')
+  get_table_list_parser.add_argument('-i', '--include-regex',
+                                     type=str,
+                                     default=[],
+                                     action='append',
+                                     help='A regex for `table.column` inclusion (e.g. `\'^users\.id$\'`)')
+  get_table_list_parser.add_argument('-e', '--exclude-regex',
+                                     type=str,
+                                     default=[],
+                                     action='append',
+                                     help=('A regex for `table.column` exclusion '
+                                           '(e.g. `\'^user_application_typesucces_properties\.'
+                                           'typesucces_user_id$\'`)'))
+
+  # The "get-sql" command
+  get_sql_parser = subparsers.add_parser('get-sql', help='Generates sql to randomize id\'s of a given table')
+  get_sql_parser.set_defaults(func=get_sql)
+  get_sql_parser.add_argument('-d', '--database',
+                              type=str,
+                              required=True,
+                              help='A database name (e.g. `example_com_www`)')
+  get_sql_parser.add_argument('-t', '--table', type=str, required=True, help='A table name (e.g. `users`)')
+  get_sql_parser.add_argument('-c', '--column', type=str, required=True, help='A column name (e.g. `id`)')
+  get_sql_parser.add_argument('--mapping-database',
+                              type=str,
+                              help='A (mapping) database name (e.g. `untraceables`)')
+  get_sql_parser.add_argument('--mapping-table', type=str, help='A (mapping) table name (e.g. `users`)')
+
+  # The "run-sql" command
+  run_sql_parser = subparsers.add_parser('run-sql', help='Runs sql from stdin')
+  run_sql_parser.set_defaults(func=run_sql)
+  run_sql_parser.add_argument('-d', '--database',
+                              type=str,
+                              required=True,
+                              help='A database name (e.g. `example_com_www`)')
+  run_sql_parser.add_argument('--foreign-key-checks',
+                              action='store_true',
+                              dest='foreign_key_checks',
+                              help='Whether or not to enable FOREIGN_KEY_CHECKS')
+  run_sql_parser.add_argument('--no-foreign-key-checks',
+                              action='store_false',
+                              dest='foreign_key_checks',
+                              help='Whether or not to enable FOREIGN_KEY_CHECKS')
+  run_sql_parser.set_defaults(foreign_key_checks=True)
+
+  parser.add_argument('-v', '--verbose', action='store_true', help='Be more verbose')
+
+  args = parser.parse_args()
+  args.func(args)
+
+  sys.exit(0)
+
+if __name__ == '__main__':
+  main()

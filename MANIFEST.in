@@ -1,0 +1,2 @@
+include *.cfg.default
+include README.md
