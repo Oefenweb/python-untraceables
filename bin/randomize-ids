@@ -54,6 +54,19 @@ def _print_e(e):
   sys.exit(1)
 
 
+def get_include_from_mydumper_backup(args):
+  """
+  Wrapper for `include-from-mydumper-backup` subcommand.
+
+  :type args: argparse.Namespace
+  :param args: Arguments
+  """
+
+  config = configuration.read_file(CONFIGURATION_FILE)
+  if config is False:
+    _print_e('Could not find or read configuration file')
+
+
 def get_table_list(args):
   """
   Wrapper for `get-table-list` subcommand.
@@ -186,6 +199,25 @@ def main():
 
   parser = argparse.ArgumentParser()
   subparsers = parser.add_subparsers(help='Commands')
+
+  # The "get-include-from-mydumper-backup" command
+  include_file_from_mydumper_backup_parser = subparsers.add_parser('get-include-from-mydumper-backup',
+                                                                   help='Generates a list of tables to be randomized')
+  include_file_from_mydumper_backup_parser.set_defaults(func=get_include_from_mydumper_backup)
+  include_file_from_mydumper_backup_parser.add_argument('-d', '--database',
+                                                        type=str,
+                                                        required=True,
+                                                        help='A database name (e.g. `example_com_www`)')
+  include_file_from_mydumper_backup_parser.add_argument('-p', '--path',
+                                                        type=str,
+                                                        required=True,
+                                                        help='A mydumper backup path (e.g. `/data/backup/mydumper`)')
+  include_file_from_mydumper_backup_parser.add_argument('-i', '--include-regex',
+                                                        type=str,
+                                                        default=[],
+                                                        action='append',
+                                                        help=('A regex for `table.column` inclusion '
+                                                              '(e.g. `\'^users\.id$\'`)'))
 
   # The "get-table-list" command
   get_table_list_parser = subparsers.add_parser('get-table-list', help='Generates a list of tables to be randomized')
