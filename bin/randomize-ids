@@ -9,6 +9,7 @@ Randomizes IDs for a given set of tables making them untraceable across environm
 from __future__ import print_function
 
 import argparse
+import re
 import sys
 import os
 from itertools import chain
@@ -56,7 +57,7 @@ def _print_e(e):
 
 def get_include_from_mydumper_backup(args):
   """
-  Wrapper for `include-from-mydumper-backup` subcommand.
+  Wrapper for `get-include-from-mydumper-backup` subcommand.
 
   :type args: argparse.Namespace
   :param args: Arguments
@@ -65,6 +66,24 @@ def get_include_from_mydumper_backup(args):
   config = configuration.read_file(CONFIGURATION_FILE)
   if config is False:
     _print_e('Could not find or read configuration file')
+
+  database = args.database
+  path = args.path
+  inclusive_regexes = args.include_regex
+
+  database_table_delimiter = '\.'
+  suffixed_database = database + '.'
+
+  files = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+  for file in sorted(files):
+    if file.startswith(suffixed_database) and not file.endswith('schema.sql'):
+      file_basename = os.path.splitext(file)[0].replace(suffixed_database, '')
+      for inclusive_regex in inclusive_regexes:
+        splitted_regex = inclusive_regex.split(database_table_delimiter)
+        table_regex = splitted_regex[0]
+        field_regex = database_table_delimiter.join(splitted_regex[1:])
+        if re.match(re.compile(table_regex), file_basename):
+          print(database_table_delimiter.join(['^' + file_basename, field_regex]))
 
 
 def get_table_list(args):
