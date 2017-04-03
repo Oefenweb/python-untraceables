@@ -245,18 +245,26 @@ def main():
                                      type=str,
                                      required=True,
                                      help='A database name (e.g. `example_com_www`)')
-  get_table_list_parser.add_argument('-i', '--include-regex',
-                                     type=str,
-                                     default=[],
-                                     action='append',
-                                     help='A regex for `table.column` inclusion (e.g. `\'^users\.id$\'`)')
-  get_table_list_parser.add_argument('-e', '--exclude-regex',
-                                     type=str,
-                                     default=[],
-                                     action='append',
-                                     help=('A regex for `table.column` exclusion '
-                                           '(e.g. `\'^user_application_typesucces_properties\.'
-                                           'typesucces_user_id$\'`)'))
+  get_table_list_parser_include_group = get_table_list_parser.add_mutually_exclusive_group(required=True)
+  get_table_list_parser_include_group.add_argument('-i', '--include-regex',
+                                                   type=str,
+                                                   default=[],
+                                                   action='append',
+                                                   help='A regex for `table.column` inclusion (e.g. `\'^users\.id$\'`)')
+  get_table_list_parser_include_group.add_argument('--include-from',
+                                                   type=str,
+                                                   help='A file (with (regexes) for `table.column` inclusion')
+  get_table_list_parser_exclude_group = get_table_list_parser.add_mutually_exclusive_group(required=True)
+  get_table_list_parser_exclude_group.add_argument('-e', '--exclude-regex',
+                                                   type=str,
+                                                   default=[],
+                                                   action='append',
+                                                   help=('A regex for `table.column` exclusion '
+                                                         '(e.g. `\'^user_application_typesucces_properties\.'
+                                                         'typesucces_user_id$\'`)'))
+  get_table_list_parser_exclude_group.add_argument('--exclude-from',
+                                                   type=str,
+                                                   help='A file (with regexes) for `table.column` exclusion')
 
   # The "get-sql" command
   get_sql_parser = subparsers.add_parser('get-sql', help='Generates sql to randomize id\'s of a given table')
