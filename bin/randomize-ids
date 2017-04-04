@@ -103,13 +103,10 @@ def get_table_list(args):
   database = args.database
   inclusive_regexes = args.include_regex
   if not inclusive_regexes:
-    with open(args.include_from) as f:
-      inclusive_regexes = f.read().splitlines()
-
+    inclusive_regexes = configuration.read_xclude_regexes_file(args.include_from)
   exclusive_regexes = args.exclude_regex
   if not inclusive_regexes:
-    with open(args.exclude_from) as f:
-      exclusive_regexes = f.read().splitlines()
+    exclusive_regexes = configuration.read_xclude_regexes_file(args.exclude_from)
 
   connection = cursor = None
   try:

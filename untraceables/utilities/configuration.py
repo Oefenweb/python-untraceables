@@ -34,3 +34,22 @@ def read_file(filename):
       pass
 
   return False
+
+
+def read_xclude_regexes_file(filename):
+  """
+  Reads an ((in|ex)clude regexes) file and returns it's lines.
+
+  :type filename: str
+  :param filename: An ((in|ex)clude regexes) file name
+  :rtype list
+  :return File content lines
+  """
+
+  try:
+    with open(filename) as filepointer:
+      return filepointer.read().splitlines()
+  except IOError:
+    pass
+
+  return []
