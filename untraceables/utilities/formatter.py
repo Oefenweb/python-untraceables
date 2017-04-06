@@ -59,6 +59,7 @@ def randomize_queries(queries):
 
   return ''
 
+
 def table_names_from_mydumper_backup(files, suffixed_database):
   """
 
@@ -70,7 +71,8 @@ def table_names_from_mydumper_backup(files, suffixed_database):
   for file in files:
     yield os.path.splitext(file)[0].replace(suffixed_database, '')
 
-def split_inclusive_regex(inclusive_regex, database_table_delimiter):
+
+def inclusive_regex_in(inclusive_regex, database_table_delimiter):
   """
 
   :param inclusive_regex:
@@ -83,3 +85,15 @@ def split_inclusive_regex(inclusive_regex, database_table_delimiter):
   field_regex = database_table_delimiter.join(splitted_regex[1:])
 
   return table_regex, field_regex
+
+
+def inclusive_regex_out(file_basename, field_regex, database_table_delimiter):
+  """
+
+  :param file_basename:
+  :param field_regex:
+  :param database_table_delimiter:
+  :return:
+  """
+
+  return database_table_delimiter.join(['^' + file_basename, field_regex])

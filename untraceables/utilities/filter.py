@@ -51,6 +51,7 @@ def show_tables(table_columns, inclusive_regexes, exclusive_regexes):
 
   return included_columns - excluded_columns
 
+
 def table_names_from_mydumper_backup(files, suffixed_database):
   """
 

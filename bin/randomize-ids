@@ -15,6 +15,7 @@ import os
 from itertools import chain
 
 import untraceables
+from untraceables.utilities import cli as cli_utility
 from untraceables.utilities import configuration
 from untraceables.utilities import file as file_utility
 from untraceables.utilities import filter
@@ -31,31 +32,6 @@ The name of untraceables' configuration file.
 """
 
 
-def _config_unpack(config):
-  """
-  Unpacks relevant options from the configuration object.
-
-  :type config: configobj.ConfigObj
-  :param config: A configuration object
-  :rtype tuple
-  :return Relevant options
-  """
-
-  return config['main']['host'], config['main']['user'], config['main']['password']
-
-
-def _print_e(e):
-  """
-  Prints an error to `STDERR` and exits with a return code of `1`.
-
-  :type e: mixed
-  :param e: An error
-  """
-
-  print(e, file=sys.stderr)
-  sys.exit(1)
-
-
 def get_include_from_mydumper_backup(args):
   """
   Wrapper for `get-include-from-mydumper-backup` subcommand.
@@ -66,7 +42,7 @@ def get_include_from_mydumper_backup(args):
 
   config = configuration.read_file(CONFIGURATION_FILE)
   if config is False:
-    _print_e('Could not find or read configuration file')
+    cli_utility.print_e('Could not find or read configuration file')
 
   database = args.database
   path = args.path
@@ -81,11 +57,9 @@ def get_include_from_mydumper_backup(args):
 
   for file_basename in formatted_files:
     for inclusive_regex in inclusive_regexes:
-      splitted_regex = inclusive_regex.split(database_table_delimiter)
-      table_regex = splitted_regex[0]
-      field_regex = database_table_delimiter.join(splitted_regex[1:])
+      table_regex, field_regex = formatter.inclusive_regex_in(inclusive_regex, database_table_delimiter)
       if re.match(re.compile(table_regex), file_basename):
-        print(database_table_delimiter.join(['^' + file_basename, field_regex]))
+        print(formatter.inclusive_regex_out(file_basename, field_regex, database_table_delimiter))
 
 
 def get_table_list(args):
@@ -98,9 +72,9 @@ def get_table_list(args):
 
   config = configuration.read_file(CONFIGURATION_FILE)
   if config is False:
-    _print_e('Could not find or read configuration file')
+    cli_utility.print_e('Could not find or read configuration file')
 
-  host, user, password = _config_unpack(config)
+  host, user, password = cli_utility.config_unpack(config)
 
   database = args.database
   inclusive_regexes = args.include_regex
@@ -123,7 +97,7 @@ def get_table_list(args):
 
     print(*formatted_columns, sep=os.linesep)
   except Exception, e:
-    _print_e(e)
+    cli_utility.print_e(e)
   finally:
     mysql.close_connection_and_cursor(connection, cursor)
 
@@ -138,9 +112,9 @@ def get_sql(args):
 
   config = configuration.read_file(CONFIGURATION_FILE)
   if config is False:
-    _print_e('Could not find or read configuration file')
+    cli_utility.print_e('Could not find or read configuration file')
 
-  host, user, password = _config_unpack(config)
+  host, user, password = cli_utility.config_unpack(config)
 
   database = args.database
   table = args.table
@@ -159,14 +133,14 @@ def get_sql(args):
     mapping_max_id = mysql.get_max_id(cursor, mapping_database, mapping_table, untraceables.MAPPING_ID_FIELD)
 
     if validation.check_max_ids(max_id, mapping_max_id):
-      _print_e('Could not randomize IDs because the maximum ID of the mapping table is not sufficient')
+      cli_utility.print_e('Could not randomize IDs because the maximum ID of the mapping table is not sufficient')
 
     randomize_ids_queries = query.get_randomize(database, table, columns, column, mapping_database, mapping_table)
     formatted_randomize_ids_queries = formatter.randomize_queries(randomize_ids_queries)
 
     print(formatted_randomize_ids_queries)
   except Exception, e:
-    _print_e(e)
+    cli_utility.print_e(e)
   finally:
     mysql.close_connection_and_cursor(connection, cursor)
 
@@ -181,15 +155,15 @@ def run_sql(args):
 
   config = configuration.read_file(CONFIGURATION_FILE)
   if config is False:
-    _print_e('Could not find or read configuration file')
+    cli_utility.print_e('Could not find or read configuration file')
 
-  host, user, password = _config_unpack(config)
+  host, user, password = cli_utility.config_unpack(config)
 
   database = args.database
   foreign_key_checks = args.foreign_key_checks
 
   if sys.stdin.isatty():
-    _print_e('Could not read any data from stdin')
+    cli_utility.print_e('Could not read any data from stdin')
 
   foreign_key_checks_off = []
   foreign_key_checks_on = []
@@ -212,7 +186,7 @@ def run_sql(args):
         cursor.execute(stripped_statement)
 
   except Exception, e:
-    _print_e(e)
+    cli_utility.print_e(e)
   finally:
     mysql.close_connection_and_cursor(connection, cursor)
 
