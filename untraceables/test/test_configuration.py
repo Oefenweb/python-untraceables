@@ -32,7 +32,7 @@ class TestConfiguration(unittest.TestCase):
     """
     Tests `read_xclude_regexes_file`.
 
-    Non existing file.
+    Non-existing file.
     """
 
     expected = []

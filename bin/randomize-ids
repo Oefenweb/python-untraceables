@@ -16,6 +16,7 @@ from itertools import chain
 
 import untraceables
 from untraceables.utilities import configuration
+from untraceables.utilities import file as file_utility
 from untraceables.utilities import filter
 from untraceables.utilities import formatter
 from untraceables.utilities import mysql
@@ -74,16 +75,17 @@ def get_include_from_mydumper_backup(args):
   database_table_delimiter = '\.'
   suffixed_database = database + '.'
 
-  files = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
-  for file in sorted(files):
-    if file.startswith(suffixed_database) and not file.endswith('schema.sql'):
-      file_basename = os.path.splitext(file)[0].replace(suffixed_database, '')
-      for inclusive_regex in inclusive_regexes:
-        splitted_regex = inclusive_regex.split(database_table_delimiter)
-        table_regex = splitted_regex[0]
-        field_regex = database_table_delimiter.join(splitted_regex[1:])
-        if re.match(re.compile(table_regex), file_basename):
-          print(database_table_delimiter.join(['^' + file_basename, field_regex]))
+  files = file_utility.get_sorted_file_list(path)
+  filtered_files = filter.table_names_from_mydumper_backup(files, suffixed_database)
+  formatted_files = formatter.table_names_from_mydumper_backup(filtered_files, suffixed_database)
+
+  for file_basename in formatted_files:
+    for inclusive_regex in inclusive_regexes:
+      splitted_regex = inclusive_regex.split(database_table_delimiter)
+      table_regex = splitted_regex[0]
+      field_regex = database_table_delimiter.join(splitted_regex[1:])
+      if re.match(re.compile(table_regex), file_basename):
+        print(database_table_delimiter.join(['^' + file_basename, field_regex]))
 
 
 def get_table_list(args):

@@ -50,3 +50,15 @@ def show_tables(table_columns, inclusive_regexes, exclusive_regexes):
   excluded_columns = _get_matches(included_columns, exclusive_regexes)
 
   return included_columns - excluded_columns
+
+def table_names_from_mydumper_backup(files, suffixed_database):
+  """
+
+  :param files:
+  :param suffixed_database:
+  :return:
+  """
+
+  for file in files:
+    if file.startswith(suffixed_database) and not file.endswith('schema.sql'):
+      yield file
