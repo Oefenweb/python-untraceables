@@ -24,13 +24,6 @@ from untraceables.utilities import mysql
 from untraceables.utilities import query
 from untraceables.utilities import validation
 
-CONFIGURATION_FILE = 'untraceables.cfg'
-"""
-The name of untraceables' configuration file.
-
-:type str
-"""
-
 
 def get_include_from_mydumper_backup(args):
   """
@@ -40,7 +33,7 @@ def get_include_from_mydumper_backup(args):
   :param args: Arguments
   """
 
-  config = configuration.read_file(CONFIGURATION_FILE)
+  config = configuration.read_file(cli_utility.CONFIGURATION_FILE)
   if config is False:
     cli_utility.print_e('Could not find or read configuration file')
 
@@ -70,7 +63,7 @@ def get_table_list(args):
   :param args: Arguments
   """
 
-  config = configuration.read_file(CONFIGURATION_FILE)
+  config = configuration.read_file(cli_utility.CONFIGURATION_FILE)
   if config is False:
     cli_utility.print_e('Could not find or read configuration file')
 
@@ -110,7 +103,7 @@ def get_sql(args):
   :param args: Arguments
   """
 
-  config = configuration.read_file(CONFIGURATION_FILE)
+  config = configuration.read_file(cli_utility.CONFIGURATION_FILE)
   if config is False:
     cli_utility.print_e('Could not find or read configuration file')
 
@@ -153,7 +146,7 @@ def run_sql(args):
   :param args: Arguments
   """
 
-  config = configuration.read_file(CONFIGURATION_FILE)
+  config = configuration.read_file(cli_utility.CONFIGURATION_FILE)
   if config is False:
     cli_utility.print_e('Could not find or read configuration file')
 

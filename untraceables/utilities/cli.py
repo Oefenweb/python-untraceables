@@ -9,6 +9,14 @@ from __future__ import print_function
 import sys
 
 
+CONFIGURATION_FILE = 'untraceables.cfg'
+"""
+The name of untraceables' configuration file.
+
+:type str
+"""
+
+
 def config_unpack(config):
   """
   Unpacks relevant options from the configuration object.
