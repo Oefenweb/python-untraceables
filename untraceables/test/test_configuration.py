@@ -28,7 +28,6 @@ class TestConfiguration(unittest.TestCase):
     expected = 'dolor'
     self.assertEqual(expected, actual['main']['password'])
 
-
   def test_read_file(self):
     """
     Tests `read_xclude_regexes_file`.
@@ -39,7 +38,6 @@ class TestConfiguration(unittest.TestCase):
     expected = []
     actual = configuration.read_xclude_regexes_file('lorem')
     self.assertEqual(expected, actual)
-
 
   def test_read_file_0(self):
     """
@@ -57,7 +55,6 @@ class TestConfiguration(unittest.TestCase):
                 '^users\.user_id$',
                 '^users\..*user_id$']
     actual = configuration.read_xclude_regexes_file(filename)
-
 
   def test_read_file_1(self):
     """

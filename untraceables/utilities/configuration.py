@@ -27,9 +27,7 @@ def read_file(filename):
   for path in os.curdir, os.path.expanduser('~'), '/etc/':
     try:
       with open(os.path.join(path, filename)) as filepointer:
-        config = ConfigObj(filepointer)
-
-        return config
+        return ConfigObj(filepointer)
     except IOError:
       pass
 
