@@ -9,49 +9,50 @@ Randomizes IDs for a given set of tables making them untraceable across environm
 from __future__ import print_function
 
 import argparse
+import re
 import sys
 import os
 from itertools import chain
 
 import untraceables
-from untraceables.utilities import configuration
-from untraceables.utilities import filter
-from untraceables.utilities import formatter
-from untraceables.utilities import mysql
-from untraceables.utilities import query
-from untraceables.utilities import validation
-
-CONFIGURATION_FILE = 'untraceables.cfg'
-"""
-The name of untraceables' configuration file.
-
-:type str
-"""
+from untraceables.utilities import cli as cli_utility
+from untraceables.utilities import configuration as configuration_utility
+from untraceables.utilities import file as file_utility
+from untraceables.utilities import filter as filter_utility
+from untraceables.utilities import formatter as formatter_utility
+from untraceables.utilities import mysql as mysql_utility
+from untraceables.utilities import query as query_utility
+from untraceables.utilities import validation as validation_utility
 
 
-def _config_unpack(config):
+def get_include_from_mydumper_backup(args):
   """
-  Unpacks relevant options from the configuration object.
+  Wrapper for `get-include-from-mydumper-backup` subcommand.
 
-  :type config: configobj.ConfigObj
-  :param config: A configuration object
-  :rtype tuple
-  :return Relevant options
+  :type args: argparse.Namespace
+  :param args: Arguments
   """
 
-  return config['main']['host'], config['main']['user'], config['main']['password']
+  config = configuration_utility.read_file(cli_utility.CONFIGURATION_FILE)
+  if config is False:
+    cli_utility.print_e('Could not find or read configuration file')
 
+  database = args.database
+  path = args.path
+  inclusive_regexes = args.include_regex
 
-def _print_e(e):
-  """
-  Prints an error to `STDERR` and exits with a return code of `1`.
+  database_table_delimiter = r'\.'
+  suffixed_database = database + '.'
 
-  :type e: mixed
-  :param e: An error
-  """
+  files = file_utility.get_sorted_file_list(path)
+  filtered_files = filter_utility.table_names_from_mydumper_backup(files, suffixed_database)
+  formatted_files = formatter_utility.table_names_from_mydumper_backup(filtered_files, suffixed_database)
 
-  print(e, file=sys.stderr)
-  sys.exit(1)
+  for file_basename in formatted_files:
+    for inclusive_regex in inclusive_regexes:
+      table_regex, field_regex = formatter_utility.inclusive_regex_in(inclusive_regex, database_table_delimiter)
+      if re.match(re.compile(table_regex), file_basename):
+        print(formatter_utility.inclusive_regex_out(file_basename, field_regex, database_table_delimiter))
 
 
 def get_table_list(args):
@@ -62,32 +63,36 @@ def get_table_list(args):
   :param args: Arguments
   """
 
-  config = configuration.read_file(CONFIGURATION_FILE)
+  config = configuration_utility.read_file(cli_utility.CONFIGURATION_FILE)
   if config is False:
-    _print_e('Could not find or read configuration file')
+    cli_utility.print_e('Could not find or read configuration file')
 
-  host, user, password = _config_unpack(config)
+  host, user, password = cli_utility.config_unpack(config)
 
   database = args.database
   inclusive_regexes = args.include_regex
+  if not inclusive_regexes:
+    inclusive_regexes = configuration_utility.read_xclude_regexes_file(args.include_from)
   exclusive_regexes = args.exclude_regex
+  if not inclusive_regexes:
+    exclusive_regexes = configuration_utility.read_xclude_regexes_file(args.exclude_from)
 
   connection = cursor = None
   try:
-    connection = mysql.get_connection(host, user, password, database)
-    cursor = mysql.get_cursor(connection)
+    connection = mysql_utility.get_connection(host, user, password, database)
+    cursor = mysql_utility.get_cursor(connection)
 
-    show_tables = mysql.get_show_tables(cursor, database)
-    formatted_show_tables = formatter.show_tables(show_tables)
+    show_tables = mysql_utility.get_show_tables(cursor, database)
+    formatted_show_tables = formatter_utility.show_tables(show_tables)
 
-    filtered_columns = filter.show_tables(formatted_show_tables, inclusive_regexes, exclusive_regexes)
-    formatted_columns = formatter.table_columns_tsv(database, sorted(filtered_columns))
+    filtered_columns = filter_utility.show_tables(formatted_show_tables, inclusive_regexes, exclusive_regexes)
+    formatted_columns = formatter_utility.table_columns_tsv(database, sorted(filtered_columns))
 
     print(*formatted_columns, sep=os.linesep)
   except Exception, e:
-    _print_e(e)
+    cli_utility.print_e(e)
   finally:
-    mysql.close_connection_and_cursor(connection, cursor)
+    mysql_utility.close_connection_and_cursor(connection, cursor)
 
 
 def get_sql(args):
@@ -98,11 +103,11 @@ def get_sql(args):
   :param args: Arguments
   """
 
-  config = configuration.read_file(CONFIGURATION_FILE)
+  config = configuration_utility.read_file(cli_utility.CONFIGURATION_FILE)
   if config is False:
-    _print_e('Could not find or read configuration file')
+    cli_utility.print_e('Could not find or read configuration file')
 
-  host, user, password = _config_unpack(config)
+  host, user, password = cli_utility.config_unpack(config)
 
   database = args.database
   table = args.table
@@ -112,25 +117,26 @@ def get_sql(args):
 
   connection = cursor = None
   try:
-    connection = mysql.get_connection(host, user, password, database)
-    cursor = mysql.get_cursor(connection)
+    connection = mysql_utility.get_connection(host, user, password, database)
+    cursor = mysql_utility.get_cursor(connection)
 
-    columns = mysql.get_show_columns(cursor, table)
+    columns = mysql_utility.get_show_columns(cursor, table)
 
-    max_id = mysql.get_max_id(cursor, database, table, column)
-    mapping_max_id = mysql.get_max_id(cursor, mapping_database, mapping_table, untraceables.MAPPING_ID_FIELD)
+    max_id = mysql_utility.get_max_id(cursor, database, table, column)
+    mapping_max_id = mysql_utility.get_max_id(cursor, mapping_database, mapping_table, untraceables.MAPPING_ID_FIELD)
 
-    if validation.check_max_ids(max_id, mapping_max_id):
-      _print_e('Could not randomize IDs because the maximum ID of the mapping table is not sufficient')
+    if validation_utility.check_max_ids(max_id, mapping_max_id):
+      cli_utility.print_e('Could not randomize IDs because the maximum ID of the mapping table is not sufficient')
 
-    randomize_ids_queries = query.get_randomize(database, table, columns, column, mapping_database, mapping_table)
-    formatted_randomize_ids_queries = formatter.randomize_queries(randomize_ids_queries)
+    randomize_ids_queries = query_utility.get_randomize(database, table, columns, column,
+                                                        mapping_database, mapping_table)
+    formatted_randomize_ids_queries = formatter_utility.randomize_queries(randomize_ids_queries)
 
     print(formatted_randomize_ids_queries)
   except Exception, e:
-    _print_e(e)
+    cli_utility.print_e(e)
   finally:
-    mysql.close_connection_and_cursor(connection, cursor)
+    mysql_utility.close_connection_and_cursor(connection, cursor)
 
 
 def run_sql(args):
@@ -141,31 +147,31 @@ def run_sql(args):
   :param args: Arguments
   """
 
-  config = configuration.read_file(CONFIGURATION_FILE)
+  config = configuration_utility.read_file(cli_utility.CONFIGURATION_FILE)
   if config is False:
-    _print_e('Could not find or read configuration file')
+    cli_utility.print_e('Could not find or read configuration file')
 
-  host, user, password = _config_unpack(config)
+  host, user, password = cli_utility.config_unpack(config)
 
   database = args.database
   foreign_key_checks = args.foreign_key_checks
 
   if sys.stdin.isatty():
-    _print_e('Could not read any data from stdin')
+    cli_utility.print_e('Could not read any data from stdin')
 
   foreign_key_checks_off = []
   foreign_key_checks_on = []
   if not foreign_key_checks:
-    foreign_key_checks_off = [query.get_foreign_key_checks(foreign_key_checks)]
-    foreign_key_checks_on = [query.get_foreign_key_checks(not foreign_key_checks)]
+    foreign_key_checks_off = [query_utility.get_foreign_key_checks(foreign_key_checks)]
+    foreign_key_checks_on = [query_utility.get_foreign_key_checks(not foreign_key_checks)]
 
-  statements_from_stdin = mysql.split_file(sys.stdin)
+  statements_from_stdin = mysql_utility.split_file(sys.stdin)
 
   connection = cursor = None
   try:
-    connection = mysql.get_connection(host, user, password, database)
+    connection = mysql_utility.get_connection(host, user, password, database)
     connection.autocommit(True)
-    cursor = mysql.get_cursor(connection)
+    cursor = mysql_utility.get_cursor(connection)
 
     statements = chain(iter(foreign_key_checks_off), statements_from_stdin, iter(foreign_key_checks_on))
     for statement in statements:
@@ -174,9 +180,9 @@ def run_sql(args):
         cursor.execute(stripped_statement)
 
   except Exception, e:
-    _print_e(e)
+    cli_utility.print_e(e)
   finally:
-    mysql.close_connection_and_cursor(connection, cursor)
+    mysql_utility.close_connection_and_cursor(connection, cursor)
 
 
 def main():
@@ -187,6 +193,25 @@ def main():
   parser = argparse.ArgumentParser()
   subparsers = parser.add_subparsers(help='Commands')
 
+  # The "get-include-from-mydumper-backup" command
+  include_file_from_mydumper_backup_parser = subparsers.add_parser('get-include-from-mydumper-backup',
+                                                                   help='Generates a list of tables to be randomized')
+  include_file_from_mydumper_backup_parser.set_defaults(func=get_include_from_mydumper_backup)
+  include_file_from_mydumper_backup_parser.add_argument('-d', '--database',
+                                                        type=str,
+                                                        required=True,
+                                                        help='A database name (e.g. `example_com_www`)')
+  include_file_from_mydumper_backup_parser.add_argument('-p', '--path',
+                                                        type=str,
+                                                        required=True,
+                                                        help='A mydumper backup path (e.g. `/data/backup/mydumper`)')
+  include_file_from_mydumper_backup_parser.add_argument('-i', '--include-regex',
+                                                        type=str,
+                                                        default=[],
+                                                        action='append',
+                                                        help=('A regex for `table.column` inclusion '
+                                                              '(e.g. `\'^users\.id$\'`)'))
+
   # The "get-table-list" command
   get_table_list_parser = subparsers.add_parser('get-table-list', help='Generates a list of tables to be randomized')
   get_table_list_parser.set_defaults(func=get_table_list)
@@ -194,18 +219,28 @@ def main():
                                      type=str,
                                      required=True,
                                      help='A database name (e.g. `example_com_www`)')
-  get_table_list_parser.add_argument('-i', '--include-regex',
-                                     type=str,
-                                     default=[],
-                                     action='append',
-                                     help='A regex for `table.column` inclusion (e.g. `\'^users\.id$\'`)')
-  get_table_list_parser.add_argument('-e', '--exclude-regex',
-                                     type=str,
-                                     default=[],
-                                     action='append',
-                                     help=('A regex for `table.column` exclusion '
-                                           '(e.g. `\'^user_application_typesucces_properties\.'
-                                           'typesucces_user_id$\'`)'))
+  get_table_list_parser_include_group = get_table_list_parser.add_mutually_exclusive_group()
+  get_table_list_parser_include_group.add_argument('-i', '--include-regex',
+                                                   type=str,
+                                                   default=[],
+                                                   action='append',
+                                                   help='A regex for `table.column` inclusion (e.g. `\'^users\.id$\'`)')
+  get_table_list_parser_include_group.add_argument('--include-from',
+                                                   type=str,
+                                                   default='',
+                                                   help='A file (with (regexes) for `table.column` inclusion')
+  get_table_list_parser_exclude_group = get_table_list_parser.add_mutually_exclusive_group()
+  get_table_list_parser_exclude_group.add_argument('-e', '--exclude-regex',
+                                                   type=str,
+                                                   default=[],
+                                                   action='append',
+                                                   help=('A regex for `table.column` exclusion '
+                                                         '(e.g. `\'^user_application_typesucces_properties\.'
+                                                         'typesucces_user_id$\'`)'))
+  get_table_list_parser_exclude_group.add_argument('--exclude-from',
+                                                   type=str,
+                                                   default='',
+                                                   help='A file (with regexes) for `table.column` exclusion')
 
   # The "get-sql" command
   get_sql_parser = subparsers.add_parser('get-sql', help='Generates sql to randomize id\'s of a given table')

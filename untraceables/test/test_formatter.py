@@ -2,7 +2,7 @@
 
 import unittest
 
-from untraceables.utilities import formatter
+from untraceables.utilities import formatter as formatter_utility
 
 
 class TestFormatter(unittest.TestCase):
@@ -14,18 +14,18 @@ class TestFormatter(unittest.TestCase):
 
     table_columns = ()
     expected = iter([])
-    actual = formatter.show_tables(table_columns)
+    actual = formatter_utility.show_tables(table_columns)
     self.assertTrue(hasattr(actual, 'next'))
     self.assertEquals(list(expected), list(actual))
 
     table_columns = ({'TABLE_NAME': 'lorem', 'COLUMN_NAME': 'ipsum'},)
     expected = iter(['lorem.ipsum'])
-    actual = formatter.show_tables(table_columns)
+    actual = formatter_utility.show_tables(table_columns)
     self.assertEquals(list(expected), list(actual))
 
     table_columns = ({'TABLE_NAME': 'lorem', 'COLUMN_NAME': 'ipsum'}, {'TABLE_NAME': 'dolor', 'COLUMN_NAME': 'sit'})
     expected = iter(['lorem.ipsum', 'dolor.sit'])
-    actual = formatter.show_tables(table_columns)
+    actual = formatter_utility.show_tables(table_columns)
     self.assertEquals(list(expected), list(actual))
 
   def test_table_columns_tsv(self):
@@ -36,7 +36,7 @@ class TestFormatter(unittest.TestCase):
     database = 'adipiscing'
     table_columns = ['lorem.ipsum', 'dolor.sit']
     expected = ['adipiscing\tlorem\tipsum', 'adipiscing\tdolor\tsit']
-    actual = formatter.table_columns_tsv(database, table_columns)
+    actual = formatter_utility.table_columns_tsv(database, table_columns)
     self.assertEquals(list(expected), list(actual))
 
   def test_randomize_queries(self):
@@ -47,12 +47,54 @@ class TestFormatter(unittest.TestCase):
     queries = ['SELECT NOW()', 'SELECT 1']
     expected = ('SELECT NOW();\n'
                 'SELECT 1;\n')
-    actual = formatter.randomize_queries(queries)
+    actual = formatter_utility.randomize_queries(queries)
     self.assertEquals(expected, actual)
 
     queries = []
     expected = ''
-    actual = formatter.randomize_queries(queries)
+    actual = formatter_utility.randomize_queries(queries)
+    self.assertEquals(expected, actual)
+
+  def test_table_names_from_mydumper_backup(self):
+    """
+    Tests `table_names_from_mydumper_backup`.
+    """
+
+    files = []
+    suffixed_database = 'ipsum.'
+    actual = formatter_utility.table_names_from_mydumper_backup(files, suffixed_database)
+    expected = []
+    self.assertTrue(hasattr(actual, 'next'))
+    self.assertEquals(expected, list(actual))
+
+    files = ['ipsum.dolor.sql', 'ipsum.consectetur.sql']
+    suffixed_database = 'ipsum.'
+    actual = formatter_utility.table_names_from_mydumper_backup(files, suffixed_database)
+    expected = ['dolor', 'consectetur']
+    self.assertTrue(hasattr(actual, 'next'))
+    self.assertEquals(expected, list(actual))
+
+  def test_inclusive_regex_in(self):
+    """
+    Tests `inclusive_regex_in`.
+    """
+
+    inclusive_regex = '^ipsum\.id$'
+    database_table_delimiter = '\.'
+    actual = formatter_utility.inclusive_regex_in(inclusive_regex, database_table_delimiter)
+    expected = '^ipsum', 'id$'
+    self.assertEquals(expected, actual)
+
+  def test_inclusive_regex_out(self):
+    """
+    Tests `inclusive_regex_out`.
+    """
+
+    file_basename = 'ipsum'
+    field_regex = 'id$'
+    database_table_delimiter = '\.'
+    actual = formatter_utility.inclusive_regex_out(file_basename, field_regex, database_table_delimiter)
+    expected = '^ipsum\.id$'
     self.assertEquals(expected, actual)
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestFormatter)

@@ -1,0 +1,7 @@
+^audit_trails\.user_id$
+^audit_trails\..*user_id$
+^tickets\.user_id$
+^tickets\..*user_id$
+^users\.id$
+^users\.user_id$
+^users\..*user_id$

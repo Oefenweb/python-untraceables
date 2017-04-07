@@ -50,3 +50,20 @@ def show_tables(table_columns, inclusive_regexes, exclusive_regexes):
   excluded_columns = _get_matches(included_columns, exclusive_regexes)
 
   return included_columns - excluded_columns
+
+
+def table_names_from_mydumper_backup(files, suffixed_database):
+  """
+  Filters table names from a directory listing (mydumper backup).
+
+  :type files: list
+  :param files: File names
+  :type suffixed_database: string
+  :param suffixed_database: A database name suffixes with a `.` (e.g. `example_com_www.`)
+  :rtype generator
+  :return Table names
+  """
+
+  for file_name in files:
+    if file_name.startswith(suffixed_database) and not file_name.endswith('schema.sql'):
+      yield file_name

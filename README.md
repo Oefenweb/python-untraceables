@@ -103,6 +103,21 @@ This loads `unsinged-int.csv-00.gz` into `untraceables`.`users`.
 
 ### Commands
 
+#### get-include-from-mydumper-backup
+
+Generates a list of include regexes, from a given mydymper backup, to be used as imput for `get-table-list`.
+
+```sh
+bin/randomize-ids get-include-from-mydumper-backup \
+  -d example_com_www \
+  -p ~/backups/latest/ \
+  -i '^users\.id$' \
+  -i '^.*\.user_id$' \
+  -i '^.*\..*user_id$' \
+  > /tmp/include-from \
+;
+```
+
 #### get-table-list
 
 Gets a list of tables and columns filtered by one or more include / exclude regexes for a given database.
@@ -113,6 +128,15 @@ bin/randomize-ids get-table-list \
   -i '^users\.id$' \
   -i '^.*\.user_id$' \
   -i '^.*\..*user_id$' \
+  -e '^user_application_x_properties\.x_user_id$' \
+;
+```
+
+or
+
+```sh
+bin/randomize-ids get-table-list -d example_com_www \
+  --include-from /tmp/include-from \
   -e '^user_application_x_properties\.x_user_id$' \
 ;
 ```
