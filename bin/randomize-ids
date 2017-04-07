@@ -155,6 +155,7 @@ def run_sql(args):
 
   database = args.database
   foreign_key_checks = args.foreign_key_checks
+  unique_checks = args.unique_checks
 
   if sys.stdin.isatty():
     cli_utility.print_e('Could not read any data from stdin')
@@ -165,6 +166,12 @@ def run_sql(args):
     foreign_key_checks_off = [query_utility.get_foreign_key_checks(foreign_key_checks)]
     foreign_key_checks_on = [query_utility.get_foreign_key_checks(not foreign_key_checks)]
 
+  unique_checks_off = []
+  unique_checks_on = []
+  if not foreign_key_checks:
+    unique_checks_off = [query_utility.get_unique_checks(unique_checks)]
+    unique_checks_on = [query_utility.get_unique_checks(not unique_checks)]
+
   statements_from_stdin = mysql_utility.split_file(sys.stdin)
 
   connection = cursor = None
@@ -173,7 +180,9 @@ def run_sql(args):
     connection.autocommit(True)
     cursor = mysql_utility.get_cursor(connection)
 
-    statements = chain(iter(foreign_key_checks_off), statements_from_stdin, iter(foreign_key_checks_on))
+    statements = chain(iter(foreign_key_checks_off), iter(unique_checks_off),
+                       statements_from_stdin,
+                       iter(unique_checks_on), iter(foreign_key_checks_on))
     for statement in statements:
       stripped_statement = statement.strip()
       if stripped_statement != '':
@@ -271,6 +280,15 @@ def main():
                               action='store_false',
                               dest='foreign_key_checks',
                               help='Whether or not to enable FOREIGN_KEY_CHECKS')
+  run_sql_parser.set_defaults(foreign_key_checks=True)
+  run_sql_parser.add_argument('--unique-checks',
+                              action='store_true',
+                              dest='unique_checks',
+                              help='Whether or not to enable UNIQUE_CHECKS')
+  run_sql_parser.add_argument('--no-unique-checks',
+                              action='store_false',
+                              dest='unique_checks',
+                              help='Whether or not to enable UNIQUE_CHECKS')
   run_sql_parser.set_defaults(foreign_key_checks=True)
 
   parser.add_argument('-v', '--verbose', action='store_true', help='Be more verbose')
