@@ -63,6 +63,23 @@ class TestQuery(unittest.TestCase):
     actual = query_utility.get_foreign_key_checks(0)
     self.assertEqual(expected, actual)
 
+  def test_get_unique_checks(self):
+    """
+    Tests `get_unique_checks`.
+    """
+
+    actual = query_utility.get_unique_checks(True)
+    expected = 'SET UNIQUE_CHECKS=1'
+    self.assertEqual(expected, actual)
+    actual = query_utility.get_unique_checks(1)
+    self.assertEqual(expected, actual)
+
+    actual = query_utility.get_unique_checks(False)
+    expected = 'SET UNIQUE_CHECKS=0'
+    self.assertEqual(expected, actual)
+    actual = query_utility.get_unique_checks(0)
+    self.assertEqual(expected, actual)
+
   def test_get_randomize(self):
     """
     Tests `get_randomize`.
