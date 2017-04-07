@@ -72,6 +72,19 @@ def get_foreign_key_checks(enabled):
   return 'SET FOREIGN_KEY_CHECKS={0:d}'.format(enabled)
 
 
+def get_unique_checks(enabled):
+  """
+  Gets the query the enable / disable UNIQUE_CHECKS.
+
+  :type bool
+  :param enabled: Whether or not to enable
+  :rtype str
+  :return A query
+  """
+
+  return 'SET UNIQUE_CHECKS={0:d}'.format(enabled)
+
+
 def get_randomize(database, table, columns, column, mapping_database, mapping_table):
   """
   Gets the queries to randomize a table / column in a given database.
