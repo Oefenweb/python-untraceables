@@ -143,8 +143,14 @@ class TestMySql(unittest.TestCase):
     Success.
     """
 
-    actual = mysql_utility.get_connection(MYSQL_HOST, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE)
-    self.assertIsInstance(actual, MySQLdb.connection)
+    actual = None
+    try:
+      actual = mysql_utility.get_connection(MYSQL_HOST, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE)
+      self.assertIsInstance(actual, MySQLdb.connection)
+    except Exception, e:
+      raise e
+    finally:
+      mysql_utility.close_connection_and_cursor(actual, None)
 
   def test_get_connection_failure(self):
     """
@@ -165,9 +171,15 @@ class TestMySql(unittest.TestCase):
     Success.
     """
 
-    connection = mysql_utility.get_connection(MYSQL_HOST, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE)
-    actual = mysql_utility.get_cursor(connection)
-    self.assertIsInstance(actual, MySQLdb.cursors.SSDictCursor)
+    connection = actual = None
+    try:
+      connection = mysql_utility.get_connection(MYSQL_HOST, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE)
+      actual = mysql_utility.get_cursor(connection)
+      self.assertIsInstance(actual, MySQLdb.cursors.SSDictCursor)
+    except Exception, e:
+      raise e
+    finally:
+      mysql_utility.close_connection_and_cursor(connection, actual)
 
   def test_get_cursor_failure(self):
     """
@@ -186,13 +198,20 @@ class TestMySql(unittest.TestCase):
     Tests `get_show_columns`.
     """
 
-    cursor = mysql_utility.get_cursor(mysql_utility.get_connection(MYSQL_HOST, MYSQL_USER, MYSQL_PASSWORD,
-                                                                   MYSQL_DATABASE))
-    table = 'users'
-    actual = mysql_utility.get_show_columns(cursor, table)
-    self.assertIsInstance(actual, tuple)
-    self.assertEqual('id', actual[0]['Field'])
-    self.assertEqual('mapped_id', actual[1]['Field'])
+    connection = actual = None
+    try:
+      connection = mysql_utility.get_connection(MYSQL_HOST, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE)
+      cursor = mysql_utility.get_cursor(connection)
+      table = 'users'
+      actual = mysql_utility.get_show_columns(cursor, table)
+      self.assertIsInstance(actual, tuple)
+      self.assertEqual('id', actual[0]['Field'])
+      self.assertEqual('mapped_id', actual[1]['Field'])
+    except Exception, e:
+      raise e
+    finally:
+      mysql_utility.close_connection_and_cursor(connection, cursor)
+
 
   def test_get_show_tables(self):
     """
@@ -211,14 +230,20 @@ class TestMySql(unittest.TestCase):
     Tests `get_max_id`.
     """
 
-    connection = mysql_utility.get_connection(MYSQL_HOST, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE)
-    cursor = mysql_utility.get_cursor(connection)
-    expected = 2
-    actual = mysql_utility.get_max_id(cursor, MYSQL_DATABASE, 'users', 'id')
-    self.assertEqual(expected, actual)
-    expected = 10
-    actual = mysql_utility.get_max_id(cursor, MYSQL_DATABASE, 'users', 'mapped_id')
-    self.assertEqual(expected, actual)
+    connection = actual = None
+    try:
+      connection = mysql_utility.get_connection(MYSQL_HOST, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE)
+      cursor = mysql_utility.get_cursor(connection)
+      expected = 2
+      actual = mysql_utility.get_max_id(cursor, MYSQL_DATABASE, 'users', 'id')
+      self.assertEqual(expected, actual)
+      expected = 10
+      actual = mysql_utility.get_max_id(cursor, MYSQL_DATABASE, 'users', 'mapped_id')
+      self.assertEqual(expected, actual)
+    except Exception, e:
+      raise e
+    finally:
+      mysql_utility.close_connection_and_cursor(connection, cursor)
 
 
 class connection_mock(object):
