@@ -9,7 +9,7 @@ def readme():
 
 
 setup(name='untraceables',
-      version='1.2.0',
+      version='1.3.0',
       author='Mischa ter Smitten',
       author_email='mtersmitten@oefenweb.nl',
       maintainer='Mischa ter Smitten',
