@@ -212,7 +212,6 @@ class TestMySql(unittest.TestCase):
     finally:
       mysql_utility.close_connection_and_cursor(connection, cursor)
 
-
   def test_get_show_tables(self):
     """
     Tests `get_show_tables`.
