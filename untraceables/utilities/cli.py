@@ -30,13 +30,13 @@ def config_unpack(config):
   return config['main']['host'], config['main']['user'], config['main']['password']
 
 
-def print_e(e):
+def print_e(error):
   """
   Prints an error to `STDERR` and exits with a return code of `1`.
 
-  :type e: mixed
-  :param e: An error
+  :type error: mixed
+  :param error: An error
   """
 
-  print(e, file=sys.stderr)
+  print(error, file=sys.stderr)
   sys.exit(1)

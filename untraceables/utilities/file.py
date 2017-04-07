@@ -9,9 +9,12 @@ import os
 
 def get_sorted_file_list(path):
   """
+  Gets a sorted directory listing (files only) for a given path.
 
-  :param path:
-  :return:
+  :type path: string
+  :param path: A path
+  :rtype list
+  :return Sorted file names
   """
 
   if os.path.exists(path):
