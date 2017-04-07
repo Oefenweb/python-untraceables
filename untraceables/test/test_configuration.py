@@ -3,7 +3,7 @@
 import os
 import unittest
 
-from untraceables.utilities import configuration
+from untraceables.utilities import configuration as configuration_utility
 
 
 class TestConfiguration(unittest.TestCase):
@@ -14,11 +14,11 @@ class TestConfiguration(unittest.TestCase):
     """
 
     filename = 'lorem'
-    actual = configuration.read_file(filename)
+    actual = configuration_utility.read_file(filename)
     self.assertFalse(actual)
 
     filename = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data', 'untraceables.cfg')
-    actual = configuration.read_file(filename)
+    actual = configuration_utility.read_file(filename)
     expected = 'configobj.ConfigObj'
     self.assertTrue(expected in str(type(actual)))
     expected = 'lorem'
@@ -36,7 +36,7 @@ class TestConfiguration(unittest.TestCase):
     """
 
     expected = []
-    actual = configuration.read_xclude_regexes_file('lorem')
+    actual = configuration_utility.read_xclude_regexes_file('lorem')
     self.assertEqual(expected, actual)
 
   def test_read_file_0(self):
@@ -54,7 +54,7 @@ class TestConfiguration(unittest.TestCase):
                 '^users\.id$',
                 '^users\.user_id$',
                 '^users\..*user_id$']
-    actual = configuration.read_xclude_regexes_file(filename)
+    actual = configuration_utility.read_xclude_regexes_file(filename)
 
   def test_read_file_1(self):
     """
@@ -65,7 +65,7 @@ class TestConfiguration(unittest.TestCase):
 
     filename = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data', 'include-from-1')
     expected = []
-    actual = configuration.read_xclude_regexes_file(filename)
+    actual = configuration_utility.read_xclude_regexes_file(filename)
 
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestConfiguration)

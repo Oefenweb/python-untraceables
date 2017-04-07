@@ -9,7 +9,7 @@ from warnings import filterwarnings
 import MySQLdb
 import MySQLdb.cursors
 
-from untraceables.utilities import query
+from untraceables.utilities import query as query_utility
 
 filterwarnings('ignore', category=MySQLdb.Warning)
 
@@ -103,7 +103,7 @@ def get_show_columns(cursor, table):
   :return The results of SHOW COLUMNS
   """
 
-  return _fetchall(cursor, query.get_show_table_columns(table))
+  return _fetchall(cursor, query_utility.get_show_table_columns(table))
 
 
 def get_show_tables(cursor, database):
@@ -118,7 +118,7 @@ def get_show_tables(cursor, database):
   :return The results of SHOW TABLES
   """
 
-  return _fetchall(cursor, query.get_show_columns(database))
+  return _fetchall(cursor, query_utility.get_show_columns(database))
 
 
 def get_max_id(cursor, database, table, column, order=None):
@@ -139,7 +139,7 @@ def get_max_id(cursor, database, table, column, order=None):
   :return: The maximum id or False on failure
   """
 
-  for row in _fetchall(cursor, query.get_max_id(database, table, column, order)):
+  for row in _fetchall(cursor, query_utility.get_max_id(database, table, column, order)):
     return row[column]
 
   return False

@@ -16,13 +16,13 @@ from itertools import chain
 
 import untraceables
 from untraceables.utilities import cli as cli_utility
-from untraceables.utilities import configuration
+from untraceables.utilities import configuration as configuration_utility
 from untraceables.utilities import file as file_utility
-from untraceables.utilities import filter
-from untraceables.utilities import formatter
-from untraceables.utilities import mysql
-from untraceables.utilities import query
-from untraceables.utilities import validation
+from untraceables.utilities import filter as filter_utility
+from untraceables.utilities import formatter as formatter_utility
+from untraceables.utilities import mysql as mysql_utility
+from untraceables.utilities import query as query_utility
+from untraceables.utilities import validation as validation_utility
 
 
 def get_include_from_mydumper_backup(args):
@@ -33,7 +33,7 @@ def get_include_from_mydumper_backup(args):
   :param args: Arguments
   """
 
-  config = configuration.read_file(cli_utility.CONFIGURATION_FILE)
+  config = configuration_utility.read_file(cli_utility.CONFIGURATION_FILE)
   if config is False:
     cli_utility.print_e('Could not find or read configuration file')
 
@@ -41,18 +41,18 @@ def get_include_from_mydumper_backup(args):
   path = args.path
   inclusive_regexes = args.include_regex
 
-  database_table_delimiter = '\.'
+  database_table_delimiter = r'\.'
   suffixed_database = database + '.'
 
   files = file_utility.get_sorted_file_list(path)
-  filtered_files = filter.table_names_from_mydumper_backup(files, suffixed_database)
-  formatted_files = formatter.table_names_from_mydumper_backup(filtered_files, suffixed_database)
+  filtered_files = filter_utility.table_names_from_mydumper_backup(files, suffixed_database)
+  formatted_files = formatter_utility.table_names_from_mydumper_backup(filtered_files, suffixed_database)
 
   for file_basename in formatted_files:
     for inclusive_regex in inclusive_regexes:
-      table_regex, field_regex = formatter.inclusive_regex_in(inclusive_regex, database_table_delimiter)
+      table_regex, field_regex = formatter_utility.inclusive_regex_in(inclusive_regex, database_table_delimiter)
       if re.match(re.compile(table_regex), file_basename):
-        print(formatter.inclusive_regex_out(file_basename, field_regex, database_table_delimiter))
+        print(formatter_utility.inclusive_regex_out(file_basename, field_regex, database_table_delimiter))
 
 
 def get_table_list(args):
@@ -63,7 +63,7 @@ def get_table_list(args):
   :param args: Arguments
   """
 
-  config = configuration.read_file(cli_utility.CONFIGURATION_FILE)
+  config = configuration_utility.read_file(cli_utility.CONFIGURATION_FILE)
   if config is False:
     cli_utility.print_e('Could not find or read configuration file')
 
@@ -72,27 +72,27 @@ def get_table_list(args):
   database = args.database
   inclusive_regexes = args.include_regex
   if not inclusive_regexes:
-    inclusive_regexes = configuration.read_xclude_regexes_file(args.include_from)
+    inclusive_regexes = configuration_utility.read_xclude_regexes_file(args.include_from)
   exclusive_regexes = args.exclude_regex
   if not inclusive_regexes:
-    exclusive_regexes = configuration.read_xclude_regexes_file(args.exclude_from)
+    exclusive_regexes = configuration_utility.read_xclude_regexes_file(args.exclude_from)
 
   connection = cursor = None
   try:
-    connection = mysql.get_connection(host, user, password, database)
-    cursor = mysql.get_cursor(connection)
+    connection = mysql_utility.get_connection(host, user, password, database)
+    cursor = mysql_utility.get_cursor(connection)
 
-    show_tables = mysql.get_show_tables(cursor, database)
-    formatted_show_tables = formatter.show_tables(show_tables)
+    show_tables = mysql_utility.get_show_tables(cursor, database)
+    formatted_show_tables = formatter_utility.show_tables(show_tables)
 
-    filtered_columns = filter.show_tables(formatted_show_tables, inclusive_regexes, exclusive_regexes)
-    formatted_columns = formatter.table_columns_tsv(database, sorted(filtered_columns))
+    filtered_columns = filter_utility.show_tables(formatted_show_tables, inclusive_regexes, exclusive_regexes)
+    formatted_columns = formatter_utility.table_columns_tsv(database, sorted(filtered_columns))
 
     print(*formatted_columns, sep=os.linesep)
   except Exception, e:
     cli_utility.print_e(e)
   finally:
-    mysql.close_connection_and_cursor(connection, cursor)
+    mysql_utility.close_connection_and_cursor(connection, cursor)
 
 
 def get_sql(args):
@@ -103,7 +103,7 @@ def get_sql(args):
   :param args: Arguments
   """
 
-  config = configuration.read_file(cli_utility.CONFIGURATION_FILE)
+  config = configuration_utility.read_file(cli_utility.CONFIGURATION_FILE)
   if config is False:
     cli_utility.print_e('Could not find or read configuration file')
 
@@ -117,25 +117,26 @@ def get_sql(args):
 
   connection = cursor = None
   try:
-    connection = mysql.get_connection(host, user, password, database)
-    cursor = mysql.get_cursor(connection)
+    connection = mysql_utility.get_connection(host, user, password, database)
+    cursor = mysql_utility.get_cursor(connection)
 
-    columns = mysql.get_show_columns(cursor, table)
+    columns = mysql_utility.get_show_columns(cursor, table)
 
-    max_id = mysql.get_max_id(cursor, database, table, column)
-    mapping_max_id = mysql.get_max_id(cursor, mapping_database, mapping_table, untraceables.MAPPING_ID_FIELD)
+    max_id = mysql_utility.get_max_id(cursor, database, table, column)
+    mapping_max_id = mysql_utility.get_max_id(cursor, mapping_database, mapping_table, untraceables.MAPPING_ID_FIELD)
 
-    if validation.check_max_ids(max_id, mapping_max_id):
+    if validation_utility.check_max_ids(max_id, mapping_max_id):
       cli_utility.print_e('Could not randomize IDs because the maximum ID of the mapping table is not sufficient')
 
-    randomize_ids_queries = query.get_randomize(database, table, columns, column, mapping_database, mapping_table)
-    formatted_randomize_ids_queries = formatter.randomize_queries(randomize_ids_queries)
+    randomize_ids_queries = query_utility.get_randomize(database, table, columns, column,
+                                                        mapping_database, mapping_table)
+    formatted_randomize_ids_queries = formatter_utility.randomize_queries(randomize_ids_queries)
 
     print(formatted_randomize_ids_queries)
   except Exception, e:
     cli_utility.print_e(e)
   finally:
-    mysql.close_connection_and_cursor(connection, cursor)
+    mysql_utility.close_connection_and_cursor(connection, cursor)
 
 
 def run_sql(args):
@@ -146,7 +147,7 @@ def run_sql(args):
   :param args: Arguments
   """
 
-  config = configuration.read_file(cli_utility.CONFIGURATION_FILE)
+  config = configuration_utility.read_file(cli_utility.CONFIGURATION_FILE)
   if config is False:
     cli_utility.print_e('Could not find or read configuration file')
 
@@ -161,16 +162,16 @@ def run_sql(args):
   foreign_key_checks_off = []
   foreign_key_checks_on = []
   if not foreign_key_checks:
-    foreign_key_checks_off = [query.get_foreign_key_checks(foreign_key_checks)]
-    foreign_key_checks_on = [query.get_foreign_key_checks(not foreign_key_checks)]
+    foreign_key_checks_off = [query_utility.get_foreign_key_checks(foreign_key_checks)]
+    foreign_key_checks_on = [query_utility.get_foreign_key_checks(not foreign_key_checks)]
 
-  statements_from_stdin = mysql.split_file(sys.stdin)
+  statements_from_stdin = mysql_utility.split_file(sys.stdin)
 
   connection = cursor = None
   try:
-    connection = mysql.get_connection(host, user, password, database)
+    connection = mysql_utility.get_connection(host, user, password, database)
     connection.autocommit(True)
-    cursor = mysql.get_cursor(connection)
+    cursor = mysql_utility.get_cursor(connection)
 
     statements = chain(iter(foreign_key_checks_off), statements_from_stdin, iter(foreign_key_checks_on))
     for statement in statements:
@@ -181,7 +182,7 @@ def run_sql(args):
   except Exception, e:
     cli_utility.print_e(e)
   finally:
-    mysql.close_connection_and_cursor(connection, cursor)
+    mysql_utility.close_connection_and_cursor(connection, cursor)
 
 
 def main():
