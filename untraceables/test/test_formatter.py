@@ -55,5 +55,47 @@ class TestFormatter(unittest.TestCase):
     actual = formatter.randomize_queries(queries)
     self.assertEquals(expected, actual)
 
+  def test_table_names_from_mydumper_backup(self):
+    """
+    Tests `table_names_from_mydumper_backup`.
+    """
+
+    files = []
+    suffixed_database = 'ipsum.'
+    actual = formatter.table_names_from_mydumper_backup(files, suffixed_database)
+    expected = []
+    self.assertTrue(hasattr(actual, 'next'))
+    self.assertEquals(expected, list(actual))
+
+    files = ['ipsum.dolor.sql', 'ipsum.consectetur.sql']
+    suffixed_database = 'ipsum.'
+    actual = formatter.table_names_from_mydumper_backup(files, suffixed_database)
+    expected = ['dolor', 'consectetur']
+    self.assertTrue(hasattr(actual, 'next'))
+    self.assertEquals(expected, list(actual))
+
+  def test_inclusive_regex_in(self):
+    """
+    Tests `inclusive_regex_in`.
+    """
+
+    inclusive_regex = '^ipsum\.id$'
+    database_table_delimiter = '\.'
+    actual = formatter.inclusive_regex_in(inclusive_regex, database_table_delimiter)
+    expected = '^ipsum', 'id$'
+    self.assertEquals(expected, actual)
+
+  def test_inclusive_regex_out(self):
+    """
+    Tests `inclusive_regex_out`.
+    """
+
+    file_basename = 'ipsum'
+    field_regex = 'id$'
+    database_table_delimiter = '\.'
+    actual = formatter.inclusive_regex_out(file_basename, field_regex, database_table_delimiter)
+    expected = '^ipsum\.id$'
+    self.assertEquals(expected, actual)
+
 suite = unittest.TestLoader().loadTestsFromTestCase(TestFormatter)
 unittest.TextTestRunner(verbosity=2).run(suite)
