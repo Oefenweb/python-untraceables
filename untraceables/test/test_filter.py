@@ -25,22 +25,22 @@ class TestFilter(unittest.TestCase):
     self.assertEquals(expected, actual)
 
     table_columns = iter(['ipsum.dolor', 'sit.amet', 'consectetur.adipiscing'])
-    inclusive_regexes = ['^.*\..*$']
+    inclusive_regexes = [r'^.*\..*$']
     exclusive_regexes = []
     expected = set(['ipsum.dolor', 'sit.amet', 'consectetur.adipiscing'])
     actual = filter_utility.show_tables(table_columns, inclusive_regexes, exclusive_regexes)
     self.assertEquals(expected, actual)
 
     table_columns = iter(['ipsum.dolor', 'sit.amet', 'consectetur.adipiscing'])
-    inclusive_regexes = ['^.*\..*$']
-    exclusive_regexes = ['^sit\..*$']
+    inclusive_regexes = [r'^.*\..*$']
+    exclusive_regexes = [r'^sit\..*$']
     expected = set(['ipsum.dolor', 'consectetur.adipiscing'])
     actual = filter_utility.show_tables(table_columns, inclusive_regexes, exclusive_regexes)
     self.assertEquals(expected, actual)
 
     table_columns = iter(['ipsum.dolor', 'sit.amet', 'consectetur.adipiscing'])
-    inclusive_regexes = ['^.*\..*$']
-    exclusive_regexes = ['^.*\.adipiscing$']
+    inclusive_regexes = [r'^.*\..*$']
+    exclusive_regexes = [r'^.*\.adipiscing$']
     expected = set(['ipsum.dolor', 'sit.amet'])
     actual = filter_utility.show_tables(table_columns, inclusive_regexes, exclusive_regexes)
     self.assertEquals(expected, actual)
@@ -71,6 +71,7 @@ class TestFilter(unittest.TestCase):
     expected = ['ipsum.dolor.sql']
     actual = filter_utility.table_names_from_mydumper_backup(files, suffixed_database)
     self.assertEquals(expected, list(actual))
+
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestFilter)
 unittest.TextTestRunner(verbosity=2).run(suite)

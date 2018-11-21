@@ -47,13 +47,13 @@ class TestConfiguration(unittest.TestCase):
     """
 
     filename = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data', 'include-from-0')
-    expected = ['^audit_trails\.user_id$',
-                '^audit_trails\..*user_id$',
-                '^tickets\.user_id$',
-                '^tickets\..*user_id$',
-                '^users\.id$',
-                '^users\.user_id$',
-                '^users\..*user_id$']
+    expected = [r'^audit_trails\.user_id$',
+                r'^audit_trails\..*user_id$',
+                r'^tickets\.user_id$',
+                r'^tickets\..*user_id$',
+                r'^users\.id$',
+                r'^users\.user_id$',
+                r'^users\..*user_id$']
     actual = configuration_utility.read_xclude_regexes_file(filename)
 
   def test_read_file_1(self):

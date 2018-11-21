@@ -25,5 +25,6 @@ class TestFile(unittest.TestCase):
     actual = file_utility.get_sorted_file_list(path)
     self.assertEquals(expected, list(actual))
 
+
 suite = unittest.TestLoader().loadTestsFromTestCase(TestFile)
 unittest.TextTestRunner(verbosity=2).run(suite)

@@ -77,7 +77,7 @@ def table_names_from_mydumper_backup(files, suffixed_database):
 
 
 def inclusive_regex_in(inclusive_regex, database_table_delimiter):
-  """
+  r"""
   Formats an inclusive regex (for input).
 
   :type inclusive_regex: str
@@ -96,7 +96,7 @@ def inclusive_regex_in(inclusive_regex, database_table_delimiter):
 
 
 def inclusive_regex_out(file_basename, field_regex, database_table_delimiter):
-  """
+  r"""
   Formats an inclusive regex (for output).
 
   :type file_basename: str

@@ -254,5 +254,6 @@ class cursor_mock(object):
   def close(self):
     raise Warning('close called on cursor')
 
+
 suite = unittest.TestLoader().loadTestsFromTestCase(TestMySql)
 unittest.TextTestRunner(verbosity=2).run(suite)
