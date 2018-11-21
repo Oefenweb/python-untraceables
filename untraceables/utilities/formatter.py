@@ -8,7 +8,7 @@ import os
 
 
 def show_tables(table_columns):
-  """
+  r"""
   Formats the results of SHOW TABLES.
 
    In the format `table.column`.
@@ -24,7 +24,7 @@ def show_tables(table_columns):
 
 
 def table_columns_tsv(database, table_columns):
-  """
+  r"""
   Formats the results of SHOW COLUMNS.
 
    In the format `database<TAB>table<TAB>column`.
@@ -43,7 +43,7 @@ def table_columns_tsv(database, table_columns):
 
 
 def randomize_queries(queries):
-  """
+  r"""
   Formats the results `query.get_randomize`.
 
   :type list
@@ -61,7 +61,7 @@ def randomize_queries(queries):
 
 
 def table_names_from_mydumper_backup(files, suffixed_database):
-  """
+  r"""
   Formats the results `filter.table_names_from_mydumper_backup`.
 
   :type files: generator
@@ -77,7 +77,7 @@ def table_names_from_mydumper_backup(files, suffixed_database):
 
 
 def inclusive_regex_in(inclusive_regex, database_table_delimiter):
-  """
+  r"""
   Formats an inclusive regex (for input).
 
   :type inclusive_regex: str
@@ -96,7 +96,7 @@ def inclusive_regex_in(inclusive_regex, database_table_delimiter):
 
 
 def inclusive_regex_out(file_basename, field_regex, database_table_delimiter):
-  """
+  r"""
   Formats an inclusive regex (for output).
 
   :type file_basename: str

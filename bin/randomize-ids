@@ -219,7 +219,7 @@ def main():
                                                         default=[],
                                                         action='append',
                                                         help=('A regex for `table.column` inclusion '
-                                                              '(e.g. `\'^users\.id$\'`)'))
+                                                              r'(e.g. `\'^users\.id$\'`)'))
 
   # The "get-table-list" command
   get_table_list_parser = subparsers.add_parser('get-table-list', help='Generates a list of tables to be randomized')
@@ -233,7 +233,8 @@ def main():
                                                    type=str,
                                                    default=[],
                                                    action='append',
-                                                   help='A regex for `table.column` inclusion (e.g. `\'^users\.id$\'`)')
+                                                   help=('A regex for `table.column` inclusion '
+                                                         r'(e.g. `\'^users\.id$\'`)'))
   get_table_list_parser_include_group.add_argument('--include-from',
                                                    type=str,
                                                    default='',
@@ -244,7 +245,7 @@ def main():
                                                    default=[],
                                                    action='append',
                                                    help=('A regex for `table.column` exclusion '
-                                                         '(e.g. `\'^user_application_typesucces_properties\.'
+                                                         r'(e.g. `\'^user_application_typesucces_properties\.'
                                                          'typesucces_user_id$\'`)'))
   get_table_list_parser_exclude_group.add_argument('--exclude-from',
                                                    type=str,
@@ -297,6 +298,7 @@ def main():
   args.func(args)
 
   sys.exit(0)
+
 
 if __name__ == '__main__':
   main()
