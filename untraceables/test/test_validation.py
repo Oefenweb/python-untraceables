@@ -36,5 +36,6 @@ class TestValidation(unittest.TestCase):
     actual = validation_utility.check_max_ids(max_id, mapping_max_id)
     self.assertFalse(actual)
 
+
 suite = unittest.TestLoader().loadTestsFromTestCase(TestValidation)
 unittest.TextTestRunner(verbosity=2).run(suite)

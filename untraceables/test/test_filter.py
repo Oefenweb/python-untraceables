@@ -72,5 +72,6 @@ class TestFilter(unittest.TestCase):
     actual = filter_utility.table_names_from_mydumper_backup(files, suffixed_database)
     self.assertEquals(expected, list(actual))
 
+
 suite = unittest.TestLoader().loadTestsFromTestCase(TestFilter)
 unittest.TextTestRunner(verbosity=2).run(suite)

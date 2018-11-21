@@ -97,5 +97,6 @@ class TestFormatter(unittest.TestCase):
     expected = '^ipsum\.id$'
     self.assertEquals(expected, actual)
 
+
 suite = unittest.TestLoader().loadTestsFromTestCase(TestFormatter)
 unittest.TextTestRunner(verbosity=2).run(suite)

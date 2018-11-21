@@ -111,5 +111,6 @@ class TestQuery(unittest.TestCase):
     expected = 'RENAME TABLE `lorem`.`_ipsum` TO `lorem`.`ipsum`'
     self.assertEqual(expected, actual[4])
 
+
 suite = unittest.TestLoader().loadTestsFromTestCase(TestQuery)
 unittest.TextTestRunner(verbosity=2).run(suite)
