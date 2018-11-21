@@ -79,10 +79,10 @@ class TestFormatter(unittest.TestCase):
     Tests `inclusive_regex_in`.
     """
 
-    inclusive_regex = '^ipsum\.id$'
-    database_table_delimiter = '\.'
+    inclusive_regex = r'^ipsum\.id$'
+    database_table_delimiter = r'\.'
     actual = formatter_utility.inclusive_regex_in(inclusive_regex, database_table_delimiter)
-    expected = '^ipsum', 'id$'
+    expected = r'^ipsum', r'id$'
     self.assertEquals(expected, actual)
 
   def test_inclusive_regex_out(self):
@@ -91,10 +91,10 @@ class TestFormatter(unittest.TestCase):
     """
 
     file_basename = 'ipsum'
-    field_regex = 'id$'
-    database_table_delimiter = '\.'
+    field_regex = r'id$'
+    database_table_delimiter = r'\.'
     actual = formatter_utility.inclusive_regex_out(file_basename, field_regex, database_table_delimiter)
-    expected = '^ipsum\.id$'
+    expected = r'^ipsum\.id$'
     self.assertEquals(expected, actual)
 
 

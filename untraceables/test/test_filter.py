@@ -25,22 +25,22 @@ class TestFilter(unittest.TestCase):
     self.assertEquals(expected, actual)
 
     table_columns = iter(['ipsum.dolor', 'sit.amet', 'consectetur.adipiscing'])
-    inclusive_regexes = ['^.*\..*$']
+    inclusive_regexes = [r'^.*\..*$']
     exclusive_regexes = []
     expected = set(['ipsum.dolor', 'sit.amet', 'consectetur.adipiscing'])
     actual = filter_utility.show_tables(table_columns, inclusive_regexes, exclusive_regexes)
     self.assertEquals(expected, actual)
 
     table_columns = iter(['ipsum.dolor', 'sit.amet', 'consectetur.adipiscing'])
-    inclusive_regexes = ['^.*\..*$']
-    exclusive_regexes = ['^sit\..*$']
+    inclusive_regexes = [r'^.*\..*$']
+    exclusive_regexes = [r'^sit\..*$']
     expected = set(['ipsum.dolor', 'consectetur.adipiscing'])
     actual = filter_utility.show_tables(table_columns, inclusive_regexes, exclusive_regexes)
     self.assertEquals(expected, actual)
 
     table_columns = iter(['ipsum.dolor', 'sit.amet', 'consectetur.adipiscing'])
-    inclusive_regexes = ['^.*\..*$']
-    exclusive_regexes = ['^.*\.adipiscing$']
+    inclusive_regexes = [r'^.*\..*$']
+    exclusive_regexes = [r'^.*\.adipiscing$']
     expected = set(['ipsum.dolor', 'sit.amet'])
     actual = filter_utility.show_tables(table_columns, inclusive_regexes, exclusive_regexes)
     self.assertEquals(expected, actual)
