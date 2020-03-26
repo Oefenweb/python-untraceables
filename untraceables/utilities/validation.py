@@ -17,4 +17,4 @@ def check_max_ids(max_id, mapping_max_id):
     :return Failure
     """
 
-    return not mapping_max_id or mapping_max_id < max_id
+    return mapping_max_id is None or (max_id is not None and mapping_max_id < max_id)
