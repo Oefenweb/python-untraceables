@@ -2,7 +2,6 @@
 
 from __future__ import absolute_import
 import unittest
-
 from untraceables.utilities import validation as validation_utility
 
 

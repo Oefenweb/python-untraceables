@@ -6,10 +6,8 @@ MySQL utility functions.
 
 from __future__ import absolute_import
 from warnings import filterwarnings
-
 import MySQLdb
 import MySQLdb.cursors
-
 from untraceables.utilities import query as query_utility
 
 filterwarnings('ignore', category=MySQLdb.Warning)

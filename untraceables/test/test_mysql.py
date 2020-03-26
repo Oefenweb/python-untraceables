@@ -3,10 +3,8 @@
 from __future__ import absolute_import
 import MySQLdb
 import MySQLdb.cursors
-
 import os
 import unittest
-
 from untraceables.utilities import mysql as mysql_utility
 
 MYSQL_HOST = 'localhost'

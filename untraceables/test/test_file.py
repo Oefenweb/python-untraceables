@@ -3,7 +3,6 @@
 from __future__ import absolute_import
 import os
 import unittest
-
 from untraceables.utilities import file as file_utility
 
 
