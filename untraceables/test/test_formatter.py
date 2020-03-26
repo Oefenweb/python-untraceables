@@ -16,7 +16,7 @@ class TestFormatter(unittest.TestCase):
         table_columns = ()
         expected = iter([])
         actual = formatter_utility.show_tables(table_columns)
-        self.assertTrue(hasattr(actual, 'next'))
+        self.assertTrue(hasattr(actual, 'next') or hasattr(actual, '__next__'))
         self.assertEquals(list(expected), list(actual))
 
         table_columns = ({'TABLE_NAME': 'lorem', 'COLUMN_NAME': 'ipsum'},)
@@ -65,14 +65,14 @@ class TestFormatter(unittest.TestCase):
         suffixed_database = 'ipsum.'
         actual = formatter_utility.table_names_from_mydumper_backup(files, suffixed_database)
         expected = []
-        self.assertTrue(hasattr(actual, 'next'))
+        self.assertTrue(hasattr(actual, 'next') or hasattr(actual, '__next__'))
         self.assertEquals(expected, list(actual))
 
         files = ['ipsum.dolor.sql', 'ipsum.consectetur.sql']
         suffixed_database = 'ipsum.'
         actual = formatter_utility.table_names_from_mydumper_backup(files, suffixed_database)
         expected = ['dolor', 'consectetur']
-        self.assertTrue(hasattr(actual, 'next'))
+        self.assertTrue(hasattr(actual, 'next') or hasattr(actual, '__next__'))
         self.assertEquals(expected, list(actual))
 
     def test_inclusive_regex_in(self):
