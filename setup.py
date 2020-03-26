@@ -4,8 +4,8 @@ from setuptools import setup, find_packages
 
 
 def readme():
-  with open('README.md') as f:
-    return f.read()
+    with open('README.md') as f:
+        return f.read()
 
 
 setup(name='untraceables',
