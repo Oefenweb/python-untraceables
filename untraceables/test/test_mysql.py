@@ -77,7 +77,7 @@ class TestMySql(unittest.TestCase):
         with open(file, 'r') as file_pointer:
             delimiter = ';'
             actual = mysql_utility.split_file(file_pointer)
-            self.assertTrue(hasattr(actual, 'next'))
+            self.assertTrue(hasattr(actual, 'next') or hasattr(actual, '__next__'))
             actual_as_list = list(actual)
             expected = 'SELECT NOW()'
             self.assertEqual(expected, actual_as_list[0])
