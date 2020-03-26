@@ -6,15 +6,15 @@ Validation utility functions.
 
 
 def check_max_ids(max_id, mapping_max_id):
-  """
-  Checks that the maximum ID of the mapping table is sufficient.
+    """
+    Checks that the maximum ID of the mapping table is sufficient.
 
-  :type long
-  :param max_id: The maximum id
-  :type long
-  :param mapping_max_id: The maximum id of the mapping table
-  :rtype bool
-  :return Failure
-  """
+    :type long
+    :param max_id: The maximum id
+    :type long
+    :param mapping_max_id: The maximum id of the mapping table
+    :rtype bool
+    :return Failure
+    """
 
-  return not mapping_max_id or mapping_max_id < max_id
+    return not mapping_max_id or mapping_max_id < max_id
