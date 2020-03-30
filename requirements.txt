@@ -1,2 +1,2 @@
 configobj==5.0.6
-MySQL-python==1.2.5
+mysqlclient==1.4.6

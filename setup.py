@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import absolute_import
 from setuptools import setup, find_packages
 
 
 def readme():
-  with open('README.md') as f:
-    return f.read()
+    with open('README.md') as f:
+        return f.read()
 
 
 setup(name='untraceables',

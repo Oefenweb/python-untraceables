@@ -4,21 +4,22 @@
 File utility functions.
 """
 
+from __future__ import absolute_import
 import os
 
 
 def get_sorted_file_list(path):
-  """
-  Gets a sorted directory listing (files only) for a given path.
+    """
+    Gets a sorted directory listing (files only) for a given path.
 
-  :type path: string
-  :param path: A path
-  :rtype list
-  :return Sorted file names
-  """
+    :type path: string
+    :param path: A path
+    :rtype list
+    :return Sorted file names
+    """
 
-  if os.path.exists(path):
-    files = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
-    return sorted(files)
+    if os.path.exists(path):
+        files = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+        return sorted(files)
 
-  return []
+    return []
