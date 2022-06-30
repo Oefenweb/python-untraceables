@@ -6,6 +6,8 @@
 Randomizes IDs for a given set of tables making them untraceable across environments
 """
 
+# pylint: disable=invalid-name
+
 from __future__ import print_function
 from __future__ import absolute_import
 import argparse

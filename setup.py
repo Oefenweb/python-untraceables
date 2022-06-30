@@ -1,12 +1,21 @@
 # -*- coding: utf-8 -*-
 
+"""
+The setup script is the centre of all activity in building, distributing, and installing modules.
+"""
+
 from __future__ import absolute_import
 from setuptools import setup, find_packages
 
 
 def readme():
-    with open('README.md') as f:
-        return f.read()
+    """
+    Return README content.
+
+    :return: The specified number of bytes from the file
+    """
+    with open('README.md') as filepointer:
+        return filepointer.read()
 
 
 setup(name='untraceables',

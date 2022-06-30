@@ -1,11 +1,19 @@
 # -*- coding: utf-8 -*-
 
+"""
+Tests for `validation_utility`.
+"""
+
 from __future__ import absolute_import
 import unittest
+
 from untraceables.utilities import validation as validation_utility
 
 
 class TestValidation(unittest.TestCase):
+    """
+    TestCase.
+    """
 
     def test_check_max_ids(self):
         """
