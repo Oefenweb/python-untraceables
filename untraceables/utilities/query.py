@@ -87,6 +87,7 @@ def get_unique_checks(enabled):
 
 # pylint: disable=too-many-arguments
 
+
 def get_randomize(database, table, columns, column, mapping_database, mapping_table):
     """
     Gets the queries to randomize a table / column in a given database.

@@ -279,5 +279,6 @@ class CursorMock(object):
 
 # pylint: enable=useless-object-inheritance,no-self-use,too-few-public-methods
 
+
 suite = unittest.TestLoader().loadTestsFromTestCase(TestMySql)
 unittest.TextTestRunner(verbosity=2).run(suite)

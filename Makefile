@@ -17,7 +17,7 @@ pylint:
 	find . -type f -name \*.py | xargs --no-run-if-empty pylint
 	find bin -type f | xargs --no-run-if-empty pylint
 
-check: pycodestyle
+check: pycodestyle pylint
 
 test:
 	nosetests -v
