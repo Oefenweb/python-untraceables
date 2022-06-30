@@ -58,17 +58,21 @@ class TestFilter(unittest.TestCase):
         self.assertEquals(expected, list(actual))
 
         files = ['ipsum.dolor-schema.sql', 'ipsum.dolor.sql',
-                 'ipsum.consectetur-schema.sql', 'ipsum.consectetur.sql']
+                 'ipsum.consectetur-schema.sql', 'ipsum.consectetur.sql',
+                 'ipsum-schema-create.sql', 'ipsum.sit-schema.sql', 'ipsum.sit.00000.sql']
         suffixed_database = 'ipsum.'
-        expected = ['ipsum.dolor.sql', 'ipsum.consectetur.sql']
+        expected = ['ipsum.dolor.sql', 'ipsum.consectetur.sql', 'ipsum.sit.00000.sql']
         actual = filter_utility.table_names_from_mydumper_backup(files, suffixed_database)
         self.assertTrue(hasattr(actual, 'next') or hasattr(actual, '__next__'))
         self.assertEquals(expected, list(actual))
 
         files = ['ipsum.dolor-schema.sql', 'ipsum.dolor.sql',
-                 'consectetur.adipiscing-schema.sql', 'consectetur.adipiscing.sql']
+                 'ipsum-schema-create.sql', 'ipsum.sit-schema.sql', 'ipsum.sit.00000.sql'
+                 'consectetur.adipiscing-schema.sql', 'consectetur.adipiscing.sql',
+                 'consectetur.adipiscing-schema.sql', 'consectetur.adipiscing.sql',
+                 'elit-schema-create.sql', 'elit.mollis-schema.sql', 'elit.mollis.00000.sql']
         suffixed_database = 'ipsum.'
-        expected = ['ipsum.dolor.sql']
+        expected = ['ipsum.dolor.sql', 'ipsum.sit.00000.sql']
         actual = filter_utility.table_names_from_mydumper_backup(files, suffixed_database)
         self.assertEquals(expected, list(actual))
 

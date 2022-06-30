@@ -67,10 +67,10 @@ class TestFormatter(unittest.TestCase):
         self.assertTrue(hasattr(actual, 'next') or hasattr(actual, '__next__'))
         self.assertEquals(expected, list(actual))
 
-        files = ['ipsum.dolor.sql', 'ipsum.consectetur.sql']
+        files = ['ipsum.dolor.sql', 'ipsum.consectetur.sql', 'ipsum.sit.00000.sql']
         suffixed_database = 'ipsum.'
         actual = formatter_utility.table_names_from_mydumper_backup(files, suffixed_database)
-        expected = ['dolor', 'consectetur']
+        expected = ['dolor', 'consectetur', 'sit']
         self.assertTrue(hasattr(actual, 'next') or hasattr(actual, '__next__'))
         self.assertEquals(expected, list(actual))
 
