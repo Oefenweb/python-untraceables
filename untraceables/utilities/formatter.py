@@ -75,7 +75,7 @@ def table_names_from_mydumper_backup(files, suffixed_database):
     """
 
     for file_name in files:
-        yield os.path.splitext(file_name)[0].replace(suffixed_database, '').replace('.00000', '')
+        yield re.sub(r'\.\d+', '', os.path.splitext(file_name)[0].replace(suffixed_database, ''))
 
 
 def inclusive_regex_in(inclusive_regex, database_table_delimiter):
