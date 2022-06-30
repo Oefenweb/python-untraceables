@@ -59,9 +59,11 @@ class TestFilter(unittest.TestCase):
 
         files = ['ipsum.dolor-schema.sql', 'ipsum.dolor.sql',
                  'ipsum.consectetur-schema.sql', 'ipsum.consectetur.sql',
-                 'ipsum-schema-create.sql', 'ipsum.sit-schema.sql', 'ipsum.sit.00000.sql']
+                 'ipsum-schema-create.sql', 'ipsum.sit-schema.sql', 'ipsum.sit.00000.sql',
+                 'ipsum.sit.00001.sql', 'ipsum.sit.12356.sql', 'ipsum.sit.99999.sql']
         suffixed_database = 'ipsum.'
-        expected = ['ipsum.dolor.sql', 'ipsum.consectetur.sql', 'ipsum.sit.00000.sql']
+        expected = ['ipsum.dolor.sql', 'ipsum.consectetur.sql', 'ipsum.sit.00000.sql',
+                    'ipsum.sit.00001.sql', 'ipsum.sit.12356.sql', 'ipsum.sit.99999.sql']
         actual = filter_utility.table_names_from_mydumper_backup(files, suffixed_database)
         self.assertTrue(hasattr(actual, 'next') or hasattr(actual, '__next__'))
         self.assertEquals(expected, list(actual))
