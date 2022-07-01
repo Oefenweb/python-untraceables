@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 
+"""
+Tests for `configuration_utility`.
+"""
+
 from __future__ import absolute_import
 import os
 import unittest
@@ -8,6 +12,9 @@ from untraceables.utilities import configuration as configuration_utility
 
 
 class TestConfiguration(unittest.TestCase):
+    """
+    TestCase.
+    """
 
     def test_read_file(self):
         """
@@ -29,7 +36,7 @@ class TestConfiguration(unittest.TestCase):
         expected = 'dolor'
         self.assertEqual(expected, actual['main']['password'])
 
-    def test_read_file(self):
+    def test_read_file_0(self):
         """
         Tests `read_xclude_regexes_file`.
 
@@ -40,7 +47,7 @@ class TestConfiguration(unittest.TestCase):
         actual = configuration_utility.read_xclude_regexes_file('lorem')
         self.assertEqual(expected, actual)
 
-    def test_read_file_0(self):
+    def test_read_file_1(self):
         """
         Tests `read_xclude_regexes_file`.
 
@@ -56,8 +63,9 @@ class TestConfiguration(unittest.TestCase):
                     r'^users\.user_id$',
                     r'^users\..*user_id$']
         actual = configuration_utility.read_xclude_regexes_file(filename)
+        self.assertEqual(expected, actual)
 
-    def test_read_file_1(self):
+    def test_read_file_2(self):
         """
         Tests `read_xclude_regexes_file`.
 
@@ -67,6 +75,7 @@ class TestConfiguration(unittest.TestCase):
         filename = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'data', 'include-from-1')
         expected = []
         actual = configuration_utility.read_xclude_regexes_file(filename)
+        self.assertEqual(expected, actual)
 
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestConfiguration)

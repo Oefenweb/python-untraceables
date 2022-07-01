@@ -85,6 +85,8 @@ def get_unique_checks(enabled):
 
     return 'SET UNIQUE_CHECKS={0:d}'.format(enabled)
 
+# pylint: disable=too-many-arguments
+
 
 def get_randomize(database, table, columns, column, mapping_database, mapping_table):
     """
@@ -143,11 +145,11 @@ def _get_randomize(database, table, columns, column, mapping_database, mapping_t
     query.append('SELECT')
 
     select = []
-    for c in columns:
-        if c['Field'] == column:
+    for show_column in columns:
+        if show_column['Field'] == column:
             select.append('`t2`.`{:s}`'.format(untraceables.MAPPING_ID_FIELD))
         else:
-            select.append('`t1`.`{:s}`'.format(c['Field']))
+            select.append('`t1`.`{:s}`'.format(show_column['Field']))
     query.append(', '.join(select))
 
     query.append('FROM `{:s}`.`{:s}` `t1`'.format(database, table))
@@ -156,3 +158,5 @@ def _get_randomize(database, table, columns, column, mapping_database, mapping_t
                                                                                   column))
 
     return ' '.join(query)
+
+# pylint: enable=too-many-arguments
