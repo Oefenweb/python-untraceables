@@ -1,8 +1,20 @@
+[MASTER]
+extension-pkg-whitelist=MySQLdb
+
 [FORMAT]
 
 max-line-length=120
 
 indent-string='    '
 
-[TYPECHECK]
-ignored-classes=MySQLdb
+[SIMILARITIES]
+min-similarity-lines=4
+ignore-comments=yes
+ignore-docstrings=yes
+ignore-imports=yes
+
+[MESSAGES CONTROL]
+disable=broad-except,too-many-locals
+
+[BASIC]
+good-names=f,e

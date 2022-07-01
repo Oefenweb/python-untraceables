@@ -1,11 +1,19 @@
 # -*- coding: utf-8 -*-
 
+"""
+Tests for `query_utility`.
+"""
+
 from __future__ import absolute_import
 import unittest
+
 from untraceables.utilities import query as query_utility
 
 
 class TestQuery(unittest.TestCase):
+    """
+    TestCase.
+    """
 
     def test_get_show_table_columns(self):
         """

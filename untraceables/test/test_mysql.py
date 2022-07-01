@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
 
+"""
+Tests for `mysql_utility`.
+"""
+
 from __future__ import absolute_import
-import MySQLdb
-import MySQLdb.cursors
 import os
 import unittest
+import MySQLdb
+import MySQLdb.cursors
+
 from untraceables.utilities import mysql as mysql_utility
 
 MYSQL_HOST = 'localhost'
@@ -29,6 +34,9 @@ Tests database name.
 
 
 class TestMySql(unittest.TestCase):
+    """
+    TestCase.
+    """
 
     def test_close_connection_and_cursor_close_not_called(self):
         """
@@ -48,10 +56,13 @@ class TestMySql(unittest.TestCase):
         Connection has a close method.
         """
 
-        connection = connection_mock()
+        connection = ConnectionMock()
         cursor = None
-        actual = mysql_utility.close_connection_and_cursor(connection, cursor)
-        self.assertRaisesRegexp(Warning, 'close called on connection')
+        mysql_utility.close_connection_and_cursor(connection, cursor)
+        try:
+            self.assertRaisesRegex(Warning, 'close called on connection')
+        except AttributeError:
+            self.assertRaisesRegexp(Warning, 'close called on connection')  # noqa pylint: disable=deprecated-method
 
     def test_close_connection_and_cursor_close_called_on_cursor(self):
         """
@@ -61,9 +72,12 @@ class TestMySql(unittest.TestCase):
         """
 
         connection = None
-        cursor = cursor_mock()
-        actual = mysql_utility.close_connection_and_cursor(connection, cursor)
-        self.assertRaisesRegexp(Warning, 'close called on cursor')
+        cursor = CursorMock()
+        mysql_utility.close_connection_and_cursor(connection, cursor)
+        try:
+            self.assertRaisesRegex(Warning, 'close called on cursor')
+        except AttributeError:
+            self.assertRaisesRegexp(Warning, 'close called on cursor')  # noqa pylint: disable=deprecated-method
 
     def test_split_file_0(self):
         """
@@ -159,7 +173,7 @@ class TestMySql(unittest.TestCase):
         """
 
         try:
-            actual = mysql_utility.get_connection(MYSQL_HOST, MYSQL_USER, 'lorem', MYSQL_DATABASE)
+            mysql_utility.get_connection(MYSQL_HOST, MYSQL_USER, 'lorem', MYSQL_DATABASE)
         except Exception as e:
             self.assertIsInstance(e, MySQLdb.OperationalError)
 
@@ -188,7 +202,7 @@ class TestMySql(unittest.TestCase):
         """
 
         try:
-            actual = mysql_utility.get_cursor(None)
+            mysql_utility.get_cursor(None)
         except Exception as e:
             self.assertIsInstance(e, AttributeError)
 
@@ -244,14 +258,32 @@ class TestMySql(unittest.TestCase):
             mysql_utility.close_connection_and_cursor(connection, cursor)
 
 
-class connection_mock(object):
+# pylint: disable=useless-object-inheritance,no-self-use,too-few-public-methods
+
+class ConnectionMock(object):
+    """
+    Mock for connection.
+    """
+
     def close(self):
+        """
+        To check that close is called.
+        """
         raise Warning('close called on connection')
 
 
-class cursor_mock(object):
+class CursorMock(object):
+    """
+    Mock for cursor.
+    """
+
     def close(self):
+        """
+        To check that close is called.
+        """
         raise Warning('close called on cursor')
+
+# pylint: enable=useless-object-inheritance,no-self-use,too-few-public-methods
 
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestMySql)
