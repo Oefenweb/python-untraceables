@@ -59,7 +59,10 @@ class TestMySql(unittest.TestCase):
         connection = ConnectionMock()
         cursor = None
         mysql_utility.close_connection_and_cursor(connection, cursor)
-        self.assertRaisesRegex(Warning, 'close called on connection')
+        try:
+            self.assertRaisesRegex(Warning, 'close called on connection')
+        except AttributeError:
+            self.assertRaisesRegexp(Warning, 'close called on connection')  # noqa pylint: disable=deprecated-method
 
     def test_close_connection_and_cursor_close_called_on_cursor(self):
         """
@@ -71,7 +74,10 @@ class TestMySql(unittest.TestCase):
         connection = None
         cursor = CursorMock()
         mysql_utility.close_connection_and_cursor(connection, cursor)
-        self.assertRaisesRegex(Warning, 'close called on cursor')
+        try:
+            self.assertRaisesRegex(Warning, 'close called on cursor')
+        except AttributeError:
+            self.assertRaisesRegexp(Warning, 'close called on cursor')  # noqa pylint: disable=deprecated-method
 
     def test_split_file_0(self):
         """

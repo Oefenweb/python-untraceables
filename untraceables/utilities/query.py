@@ -118,7 +118,7 @@ def get_randomize(database, table, columns, column, mapping_database, mapping_ta
     return queries
 
 
-def _get_randomize(database, table, show_columns, column, mapping_database, mapping_table):
+def _get_randomize(database, table, columns, column, mapping_database, mapping_table):
     """
     Gets the query to randomize a table / column in a given database.
 
@@ -129,7 +129,7 @@ def _get_randomize(database, table, show_columns, column, mapping_database, mapp
     :type str
     :param table: A table name
     :type tuple
-    :param show_columns: Zero or more column names (result of `SHOW COLUMNS`)
+    :param columns: Zero or more column names (result of `SHOW COLUMNS`)
     :type str
     :param column: A column name
     :type str
@@ -145,7 +145,7 @@ def _get_randomize(database, table, show_columns, column, mapping_database, mapp
     query.append('SELECT')
 
     select = []
-    for show_column in show_columns:
+    for show_column in columns:
         if show_column['Field'] == column:
             select.append('`t2`.`{:s}`'.format(untraceables.MAPPING_ID_FIELD))
         else:
