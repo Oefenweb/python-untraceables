@@ -66,5 +66,5 @@ def table_names_from_mydumper_backup(files, suffixed_database):
     """
 
     for file_name in files:
-        if file_name.startswith(suffixed_database) and not file_name.endswith('schema.sql'):
+        if file_name.startswith(suffixed_database) and file_name.endswith('-schema.sql'):
             yield file_name

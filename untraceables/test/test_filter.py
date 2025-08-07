@@ -65,23 +65,21 @@ class TestFilter(unittest.TestCase):
         self.assertTrue(hasattr(actual, 'next') or hasattr(actual, '__next__'))
         self.assertEqual(expected, list(actual))
 
-        files = ['ipsum.dolor-schema.sql', 'ipsum.dolor.sql',
-                 'ipsum.consectetur-schema.sql', 'ipsum.consectetur.sql',
-                 'ipsum-schema-create.sql', 'ipsum.sit-schema.sql', 'ipsum.sit.00000.sql',
-                 'ipsum.sit.00001.sql', 'ipsum.sit.12356.sql', 'ipsum.sit.99999.sql']
+        files = ['ipsum.dolor-schema.sql', 'ipsum.consectetur-schema.sql', 'ipsum.sit-schema.sql',
+                 'ipsum.dolor.sql', 'ipsum.consectetur.sql', 'ipsum-schema-create.sql',
+                 'ipsum.sit.00000.sql', 'ipsum.sit.00001.sql', 'ipsum.sit.12356.sql', 'ipsum.sit.99999.sql']
         suffixed_database = 'ipsum.'
-        expected = ['ipsum.dolor.sql', 'ipsum.consectetur.sql', 'ipsum.sit.00000.sql',
-                    'ipsum.sit.00001.sql', 'ipsum.sit.12356.sql', 'ipsum.sit.99999.sql']
+        expected = ['ipsum.dolor-schema.sql', 'ipsum.consectetur-schema.sql', 'ipsum.sit-schema.sql']
         actual = filter_utility.table_names_from_mydumper_backup(files, suffixed_database)
         self.assertTrue(hasattr(actual, 'next') or hasattr(actual, '__next__'))
         self.assertEqual(expected, list(actual))
 
-        files = ['ipsum.dolor-schema.sql', 'ipsum.dolor.sql',
-                 'ipsum-schema-create.sql', 'ipsum.sit-schema.sql', 'ipsum.sit.00000.sql',
-                 'consectetur.adipiscing-schema.sql', 'consectetur.adipiscing.sql',
-                 'elit-schema-create.sql', 'elit.mollis-schema.sql', 'elit.mollis.00000.sql']
+        files = ['ipsum.dolor-schema.sql', 'ipsum.sit-schema.sql',
+                 'ipsum.dolor.sql', 'ipsum-schema-create.sql', 'ipsum.sit.00000.sql',
+                 'consectetur.adipiscing-schema.sql', 'consectetur.adipiscing.sql', 'elit-schema-create.sql',
+                 'elit.mollis-schema.sql', 'elit.mollis.00000.sql']
         suffixed_database = 'ipsum.'
-        expected = ['ipsum.dolor.sql', 'ipsum.sit.00000.sql']
+        expected = ['ipsum.dolor-schema.sql', 'ipsum.sit-schema.sql']
         actual = filter_utility.table_names_from_mydumper_backup(files, suffixed_database)
         self.assertEqual(expected, list(actual))
 

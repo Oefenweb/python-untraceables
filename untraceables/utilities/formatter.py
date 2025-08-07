@@ -6,7 +6,6 @@ Formatter utility functions.
 
 from __future__ import absolute_import
 import os
-import re
 
 
 def show_tables(table_columns):
@@ -75,7 +74,9 @@ def table_names_from_mydumper_backup(files, suffixed_database):
     """
 
     for file_name in files:
-        yield re.sub(r'\.\d+$', '', os.path.splitext(file_name)[0].replace(suffixed_database, ''))
+        yield (os.path.splitext(file_name)[0]
+               .replace(suffixed_database, '')
+               .replace('-schema', ''))
 
 
 def inclusive_regex_in(inclusive_regex, database_table_delimiter):
